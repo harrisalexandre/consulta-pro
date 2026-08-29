@@ -402,6 +402,8 @@ const landingCss = `
   .footer-links a{font-size:14px;color:var(--stone-600);}
   .footer-links a:hover{color:var(--green-mid);}
   .copyright{font-size:13px;color:var(--stone-600);text-align:center;padding-top:24px;border-top:1px solid var(--border);}
+  .copyright a{color:var(--green-deep);font-weight:600;transition:color .15s;}
+  .copyright a:hover{color:var(--green-mid);}
 `
 const landingHtml = `<header>
   <div class="container nav">
@@ -792,7 +794,7 @@ const landingHtml = `<header>
         <a href="/login">Entrar</a>
       </div>
     </div>
-    <p class="copyright">© 2026 Consulta Pro</p>
+    <p class="copyright">© 2026 Consulta Pro - Desenvolvido por <a href="https://www.linkedin.com/in/harris-alexandre/" target="_blank" rel="noopener noreferrer">Harris Alexandre</a></p>
   </div>
 </footer>`
 
