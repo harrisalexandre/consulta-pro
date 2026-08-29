@@ -148,7 +148,12 @@ const landingCss = `
   .reveal.in{opacity:1;transform:translateY(0);}
 
   /* ===== Hero ===== */
-  .hero{
+  /* Scoped reset: the app's authenticated layout also uses .hero. */
+  .public-landing .hero{
+    max-width:none;
+    margin:0;
+    display:block;
+    grid-template-columns:none;
     padding:76px 0 90px;
     position:relative;
     overflow:hidden;
