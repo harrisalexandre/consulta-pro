@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useTenant } from './contexts/TenantContext'
+import Landing from './Landing'
 
 type Company = { id: string; name: string; legal_name?: string | null; cnpj?: string | null; phone?: string | null; email?: string | null }
 type Icon = React.ElementType
@@ -35,17 +36,6 @@ const adminNav: [string, string, Icon][] = [
 
 function Logo() {
   return <div className="logo"><b>C</b> Consulta Pro</div>
-}
-
-function Landing() {
-  const navigate = useNavigate()
-  return <div className="landing">
-    <header className="landing-nav"><Logo /><button className="login-link" onClick={() => navigate('/login')}><LogIn size={16}/> Entrar</button></header>
-    <section className="hero">
-      <div className="hero-copy"><span className="eyebrow">GESTÃO INTELIGENTE DE ATENDIMENTOS</span><h1>Sua agenda organizada.<br/><em>Seu consultório conectado.</em></h1><p>Centralize pacientes, profissionais, agenda e lembretes de WhatsApp em um único lugar.</p><button className="hero-btn" onClick={() => navigate('/login')}>Acessar meu consultório <ChevronRight size={17}/></button><div className="trust"><ShieldCheck size={16}/><span>Dados isolados por empresa com Supabase RLS</span></div></div>
-      <div className="hero-card"><div className="mini-top"><span>Hoje</span><CheckCircle2 size={17}/></div><div className="mini-title">Próximos atendimentos</div><div className="mini-row"><strong>10:45</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-row"><strong>11:30</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-wa"><MessageCircle size={18}/><span><b>Lembretes pelo WhatsApp</b><small>Integração por empresa</small></span></div></div>
-    </section>
-  </div>
 }
 
 function Login() {
