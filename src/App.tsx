@@ -1,60 +1,115 @@
-import React, { useEffect, useState } from 'react'
-import { NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bot, Building2, CalendarDays, CheckCircle2, LogIn, LogOut, MessageCircle, Plus, Settings, ShieldCheck, UserRound, Users } from 'lucide-react'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import {
+  Activity, ArrowLeft, BarChart3, Bot, Building2, CalendarDays, CheckCircle2,
+  ChevronRight, CircleAlert, LayoutDashboard, LogIn, LogOut, MessageCircle,
+  Plus, Settings, ShieldCheck, UserRound, Users, Wifi, XCircle
+} from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { useTenant } from './contexts/TenantContext'
 
-const nav = [
-  ['/dashboard', 'Dashboard'],
-  ['/agenda', 'Agenda'],
-  ['/pacientes', 'Pacientes'],
-  ['/profissionais', 'Profissionais'],
-  ['/whatsapp', 'WhatsApp'],
-  ['/automacoes', 'Automações'],
-  ['/configuracoes', 'Configurações'],
-] as const
+type Company = { id: string; name: string; legal_name?: string | null; cnpj?: string | null; phone?: string | null; email?: string | null }
+type Icon = React.ComponentType<{ size?: number; className?: string }>
+
+const tenantNav: [string, string, Icon][] = [
+  ['/dashboard', 'Dashboard', LayoutDashboard],
+  ['/agenda', 'Agenda', CalendarDays],
+  ['/pacientes', 'Pacientes', Users],
+  ['/profissionais', 'Profissionais', UserRound],
+  ['/whatsapp', 'WhatsApp', MessageCircle],
+  ['/automacoes', 'Automações', Bot],
+  ['/configuracoes', 'Configurações', Settings],
+]
+
+const adminNav: [string, string, Icon][] = [
+  ['/admin/dashboard', 'Dashboard', LayoutDashboard],
+  ['/admin/empresas', 'Empresas', Building2],
+  ['/admin/usuarios', 'Usuários', Users],
+  ['/admin/permissoes', 'Permissões', ShieldCheck],
+  ['/admin/whatsapp', 'WhatsApp', MessageCircle],
+  ['/admin/mensagens', 'Mensagens', BarChart3],
+  ['/admin/automacoes', 'Automações', Bot],
+  ['/admin/atividade', 'Atividade', Activity],
+  ['/admin/configuracoes', 'Configurações', Settings],
+]
+
+function Logo() {
+  return <div className="logo"><b>C</b> Consulta Pro</div>
+}
 
 function Landing() {
   const navigate = useNavigate()
-  return (
-    <div className="landing">
-      <header className="landing-nav"><div className="logo"><b>C</b> Consulta Pro</div><button className="login-link" onClick={() => navigate('/login')}><LogIn size={16} /> Entrar</button></header>
-      <section className="hero">
-        <div className="hero-copy"><span className="eyebrow">GESTÃO INTELIGENTE DE ATENDIMENTOS</span><h1>Sua agenda organizada.<br /><em>Seu consultório conectado.</em></h1><p>Centralize pacientes, profissionais, agenda e lembretes de WhatsApp em um único lugar.</p><button className="hero-btn" onClick={() => navigate('/login')}>Acessar meu consultório <ArrowRight size={17} /></button><div className="trust"><ShieldCheck size={16} /><span>Dados isolados por empresa com Supabase RLS</span></div></div>
-        <div className="hero-card"><div className="mini-top"><span>Hoje</span><CheckCircle2 size={17} /></div><div className="mini-title">Próximos atendimentos</div><div className="mini-row"><strong>10:45</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-row"><strong>11:30</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-wa"><MessageCircle size={18} /><span><b>Lembretes pelo WhatsApp</b><small>Integração por empresa</small></span></div></div>
-      </section>
-    </div>
-  )
+  return <div className="landing">
+    <header className="landing-nav"><Logo /><button className="login-link" onClick={() => navigate('/login')}><LogIn size={16}/> Entrar</button></header>
+    <section className="hero">
+      <div className="hero-copy"><span className="eyebrow">GESTÃO INTELIGENTE DE ATENDIMENTOS</span><h1>Sua agenda organizada.<br/><em>Seu consultório conectado.</em></h1><p>Centralize pacientes, profissionais, agenda e lembretes de WhatsApp em um único lugar.</p><button className="hero-btn" onClick={() => navigate('/login')}>Acessar meu consultório <ChevronRight size={17}/></button><div className="trust"><ShieldCheck size={16}/><span>Dados isolados por empresa com Supabase RLS</span></div></div>
+      <div className="hero-card"><div className="mini-top"><span>Hoje</span><CheckCircle2 size={17}/></div><div className="mini-title">Próximos atendimentos</div><div className="mini-row"><strong>10:45</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-row"><strong>11:30</strong><span><b>Paciente</b><small>Atendimento</small></span><i>Confirmado</i></div><div className="mini-wa"><MessageCircle size={18}/><span><b>Lembretes pelo WhatsApp</b><small>Integração por empresa</small></span></div></div>
+    </section>
+  </div>
 }
 
 function Login() {
-  const navigate = useNavigate(); const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [error, setError] = useState(''); const [loading, setLoading] = useState(false)
-  async function submit(event: React.FormEvent) {
-    event.preventDefault(); setError(''); setLoading(true)
-    if (!supabase) { setError('Supabase não configurado.'); setLoading(false); return }
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
-    if (authError) { setError('E-mail ou senha inválidos.'); setLoading(false); return }
-    navigate('/dashboard')
-  }
-  return <div className="auth"><div className="auth-card"><div className="logo center"><b>C</b> Consulta Pro</div><h1>Bem-vindo de volta</h1><p>Entre para acessar o sistema.</p><form onSubmit={submit}><label>E-mail<input type="email" required value={email} onChange={e => setEmail(e.target.value)} /></label><label>Senha<input type="password" required value={password} onChange={e => setPassword(e.target.value)} /></label>{error && <div className="form-error">{error}</div>}<button className="hero-btn full" disabled={loading}>{loading ? 'Entrando...' : 'Entrar'}</button></form><button className="back" onClick={() => navigate('/')}>Voltar para o início</button></div></div>
+  const navigate = useNavigate()
+  const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [error,setError]=useState(''); const [loading,setLoading]=useState(false)
+  async function submit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);if(!supabase){setError('Supabase não configurado.');setLoading(false);return}const{error}=await supabase.auth.signInWithPassword({email,password});if(error){setError('E-mail ou senha inválidos.');setLoading(false);return}navigate('/app');}
+  return <div className="auth"><div className="auth-card"><Logo/><h1>Bem-vindo de volta</h1><p>Entre para acessar o sistema.</p><form onSubmit={submit}><label>E-mail<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Senha<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<div className="form-error">{error}</div>}<button className="hero-btn full" disabled={loading}>{loading?'Entrando...':'Entrar'}</button></form><button className="back" onClick={()=>navigate('/')}>Voltar para o início</button></div></div>
 }
 
-function Superadmin() {
-  const { companies, refresh } = useTenant(); const [name, setName] = useState(''); const [legal, setLegal] = useState(''); const [cnpj, setCnpj] = useState(''); const [busy, setBusy] = useState(false); const [error, setError] = useState('')
-  async function createCompany() {
-    if (!supabase || !name.trim()) return
-    setBusy(true); setError('')
-    const { error: rpcError } = await supabase.rpc('superadmin_create_company', { company_name: name.trim(), legal_name: legal || null, cnpj: cnpj || null, phone: null, email: null })
-    if (rpcError) setError(rpcError.message); else { setName(''); setLegal(''); setCnpj(''); await refresh() }
-    setBusy(false)
-  }
-  return <div className="content"><div className="head"><div><h1>Empresas</h1><p>Administração global do Consulta Pro.</p></div></div><div className="grid"><section className="panel"><h2>Novo consultório</h2><div className="form-grid"><input placeholder="Nome da empresa*" value={name} onChange={e => setName(e.target.value)} /><input placeholder="Razão social" value={legal} onChange={e => setLegal(e.target.value)} /><input placeholder="CNPJ" value={cnpj} onChange={e => setCnpj(e.target.value)} /></div>{error && <div className="form-error">{error}</div>}<button className="hero-btn" disabled={busy || !name.trim()} onClick={createCompany}>{busy ? 'Criando...' : 'Criar consultório'} <Plus size={16} /></button></section><section className="panel"><h2>Mensageria global</h2><div className="metrics"><div className="card"><span>Hoje</span><b>0</b></div><div className="card"><span>Semana</span><b>0</b></div><div className="card"><span>Mês</span><b>0</b></div></div><p>As métricas serão alimentadas pelas mensagens reais.</p></section></div><section className="panel"><h2>Consultórios</h2>{companies.length === 0 ? <p>Nenhum consultório cadastrado.</p> : companies.map(company => <div className="mini-row" key={company.id}><strong>{company.name}</strong><span>{company.cnpj || 'CNPJ não informado'}</span><i>Ativo</i></div>)}</section></div>
+function SessionGate() {
+  const [state,setState]=useState<'loading'|'admin'|'tenant'|'none'>('loading')
+  useEffect(()=>{let alive=true;async function load(){if(!supabase){setState('none');return}const{data:{session}}=await supabase.auth.getSession();if(!session){if(alive)setState('none');return}const{data}=await supabase.from('profiles').select('is_superadmin').eq('id',session.user.id).maybeSingle();if(alive)setState(data?.is_superadmin?'admin':'tenant')}load();const{data}=supabase?.auth.onAuthStateChange(()=>load())||{data:{subscription:{unsubscribe(){}}}};return()=>{alive=false;data.subscription.unsubscribe()}}
+  ,[])
+  if(state==='loading')return <div className="auth"><div className="panel">Carregando sessão...</div></div>
+  if(state==='none')return <Navigate to="/login" replace/>
+  return state==='admin'?<AdminLayout/>:<TenantLayout/>
 }
 
-function CompanyGate() { const { activeCompany } = useTenant(); if (activeCompany) return null; return <div className="content"><section className="panel"><Building2 size={36} /><h2>Empresa não configurada</h2><p>Entre em contato com o administrador.</p></section></div> }
-function EmptyPage({ title, description, icon: Icon, action = 'Novo' }: { title: string; description: string; icon: React.ElementType; action?: string }) { return <div className="content"><div className="head"><div><h1>{title}</h1><p>{description}</p></div><button className="hero-btn"><Plus size={16} />{action}</button></div><section className="panel placeholder"><Icon size={42} /><h2>{title}</h2><p>Nenhum registro encontrado. Esta tela está ligada ao tenant ativo e pronta para o CRUD.</p></section></div> }
-function Dashboard() { const { activeCompany } = useTenant(); return <div className="content"><div className="head"><div><h1>Dashboard</h1><p>{activeCompany?.name}</p></div><button className="hero-btn"><Plus size={16} /> Novo atendimento</button></div><div className="metrics">{[['Consultas hoje','0'],['Confirmadas','0'],['Pendentes','0'],['Realizadas','0']].map(item=><div className="card" key={item[0]}><span>{item[0]}</span><b>{item[1]}</b></div>)}</div><div className="grid"><section className="panel"><h2>Próximos atendimentos</h2><p>Os atendimentos reais aparecerão aqui quando cadastrados.</p></section><section className="panel"><h2>WhatsApp</h2><p>Nenhuma integração conectada.</p></section></div></div> }
-function AuthGate() { const [session, setSession] = useState<boolean | null>(null); useEffect(() => { if (!supabase) { setSession(false); return }; supabase.auth.getSession().then(({ data }) => setSession(!!data.session)); const { data } = supabase.auth.onAuthStateChange((_event, currentSession) => setSession(!!currentSession)); return () => data.subscription.unsubscribe() }, []); if (session === null) return <div className="content"><div className="panel">Carregando sessão...</div></div>; if (!session) return <Navigate to="/login" replace />; return <Layout /> }
-function Layout() { const { activeCompany, companies, setActiveCompany } = useTenant(); const navigate = useNavigate(); async function logout() { await supabase?.auth.signOut(); navigate('/login') } if (!activeCompany) return <CompanyGate />; return <div className="layout"><aside><div className="logo"><b>C</b> Consulta Pro</div><div className="company">{activeCompany.name}</div>{companies.length > 1 && <select className="company-select" value={activeCompany.id} onChange={e => { const company = companies.find(item => item.id === e.target.value); if (company) setActiveCompany(company) }}>{companies.map(company => <option key={company.id} value={company.id}>{company.name}</option>)}</select>}<nav>{nav.map(([path, label]) => <NavLink key={path} to={path}>{label}</NavLink>)}</nav><div className="profile"><b>A</b><span>Conta ativa<small>Tenant protegido por RLS</small></span><button onClick={logout} title="Sair"><LogOut size={15} /></button></div></aside><main><header><strong>{activeCompany.name}</strong><span>Administrador</span></header><Routes><Route index element={<Dashboard />} /><Route path="dashboard" element={<Dashboard />} /><Route path="agenda" element={<EmptyPage title="Agenda" description="Organize seus atendimentos." icon={CalendarDays} />} /><Route path="pacientes" element={<EmptyPage title="Pacientes" description="Gerencie os pacientes da empresa." icon={Users} />} /><Route path="profissionais" element={<EmptyPage title="Profissionais" description="Gerencie os profissionais da empresa." icon={UserRound} />} /><Route path="whatsapp" element={<EmptyPage title="WhatsApp" description="Gerencie a integração da empresa." icon={MessageCircle} />} /><Route path="automacoes" element={<EmptyPage title="Automações" description="Configure lembretes e mensagens." icon={Bot} />} /><Route path="configuracoes" element={<EmptyPage title="Configurações" description="Configure empresa, usuários e preferências." icon={Settings} />} /></Routes></main></div> }
+function AdminLayout(){
+  const navigate=useNavigate()
+  async function logout(){await supabase?.auth.signOut();navigate('/login')}
+  return <div className="layout"><aside><Logo/><div className="company"><strong>Administração</strong><small>Visão global da plataforma</small></div><nav>{adminNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={17}/>{label}</NavLink>)}</nav><div className="profile"><b>SA</b><span>Superadmin<small>Controle global</small></span><button onClick={logout} title="Sair"><LogOut size={15}/></button></div></aside><main><header><strong>Consulta Pro</strong><span>Superadmin</span></header><Routes><Route index element={<Navigate to="/admin/dashboard" replace/>}/><Route path="admin/dashboard" element={<AdminDashboard/>}/><Route path="admin/empresas" element={<AdminCompanies/>}/><Route path="admin/empresas/nova" element={<NewCompany/>}/><Route path="admin/empresas/:id" element={<CompanyDetail/>}/><Route path="admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/><Route path="admin/permissoes" element={<Permissions/>}/><Route path="admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/><Route path="admin/mensagens" element={<AdminMessages/>}/><Route path="admin/automacoes" element={<AdminPlaceholder title="Automações" description="Automações executadas pelos tenants." icon={Bot}/>}/><Route path="admin/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/><Route path="admin/configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/><Route path="*" element={<Navigate to="/admin/dashboard" replace/>}/></Routes></main></div>
+}
 
-export default function App() { return <Routes><Route path="/" element={<Landing />} /><Route path="/login" element={<Login />} /><Route path="/admin/empresas" element={<AuthGate />} /><Route path="*" element={<AuthGate />} /></Routes> }
+function Metric({label,value,icon:Icon}: {label:string;value:string|number;icon?:Icon}){return <div className="card">{Icon&&<Icon size={17}/>}<span>{label}</span><b>{value}</b></div>}
+
+function AdminDashboard(){
+  const{companies}=useTenant(); const[stats,setStats]=useState({messages:0,dispatches:0,patients:0,appointments:0})
+  useEffect(()=>{async function load(){if(!supabase)return;const count=async(table:string)=>{const r=await supabase.from(table).select('*',{count:'exact',head:true});return r.count||0};setStats({messages:await count('whatsapp_messages'),dispatches:await count('automation_dispatches'),patients:await count('patients'),appointments:await count('appointments')})}load()},[])
+  return <div className="content"><div className="head"><div><h1>Visão geral</h1><p>Operação global do Consulta Pro.</p></div><NavLink className="hero-btn" to="/admin/empresas/nova"><Plus size={16}/> Nova empresa</NavLink></div><div className="metrics"><Metric label="Empresas" value={companies.length} icon={Building2}/><Metric label="Pacientes" value={stats.patients} icon={Users}/><Metric label="Atendimentos" value={stats.appointments} icon={CalendarDays}/><Metric label="Mensagens" value={stats.messages} icon={MessageCircle}/></div><div className="grid"><section className="panel"><h2>Empresas recentes</h2>{companies.length===0?<Empty text="Nenhuma empresa cadastrada."/>:companies.slice(0,8).map(c=><div className="row" key={c.id}><Building2 size={17}/><span><b>{c.name}</b><small>{c.cnpj||'CNPJ não informado'}</small></span><NavLink to={'/admin/empresas/'+c.id}>Gerenciar</NavLink></div>)}</section><section className="panel"><h2>Mensageria</h2><div className="wa"><MessageCircle size={20}/><span><b>{stats.dispatches} automações registradas</b><small>Eventos de disparo no banco</small></span></div><div className="stats"><div><b>{stats.messages}</b><small>mensagens</small></div><div><b>{companies.length}</b><small>empresas</small></div></div></section></div></div>
+}
+
+function AdminCompanies(){
+  const{companies,refresh}=useTenant(); const navigate=useNavigate()
+  return <div className="content"><div className="head"><div><h1>Empresas</h1><p>Todos os consultórios e clínicas da plataforma.</p></div><button className="hero-btn" onClick={()=>navigate('/admin/empresas/nova')}><Plus size={16}/> Nova empresa</button></div><section className="panel">{companies.length===0?<div className="empty-box"><Building2 size={35}/><h2>Nenhuma empresa cadastrada</h2><p>Crie o primeiro consultório para começar.</p><button className="hero-btn" onClick={()=>navigate('/admin/empresas/nova')}>Criar empresa</button></div>:companies.map(c=><div className="row" key={c.id}><Building2 size={18}/><span><b>{c.name}</b><small>{c.cnpj||'CNPJ não informado'}</small></span><i>Ativa</i><NavLink to={'/admin/empresas/'+c.id}>Gerenciar</NavLink></div>)}</section></div>
+}
+
+function NewCompany(){
+  const navigate=useNavigate();const{refresh}=useTenant();const[name,setName]=useState('');const[legal,setLegal]=useState('');const[cnpj,setCnpj]=useState('');const[phone,setPhone]=useState('');const[email,setEmail]=useState('');const[busy,setBusy]=useState(false);const[error,setError]=useState('')
+  async function submit(e:React.FormEvent){e.preventDefault();if(!supabase||!name.trim())return;setBusy(true);setError('');const{error}=await supabase.rpc('superadmin_create_company',{company_name:name.trim(),legal_name:legal||null,cnpj:cnpj||null,phone:phone||null,email:email||null});if(error)setError(error.message);else{await refresh();navigate('/admin/empresas')}setBusy(false)}
+  return <div className="content"><div className="head"><div><button className="back-link" onClick={()=>navigate('/admin/empresas')}><ArrowLeft size={15}/> Empresas</button><h1>Nova empresa</h1><p>Cadastre um novo tenant do Consulta Pro.</p></div></div><section className="panel"><form className="form-grid" onSubmit={submit}><label>Nome fantasia*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Razão social<input value={legal} onChange={e=>setLegal(e.target.value)}/></label><label>CNPJ<input value={cnpj} onChange={e=>setCnpj(e.target.value)}/></label><label>Telefone<input value={phone} onChange={e=>setPhone(e.target.value)}/></label><label>E-mail<input type="email" value={email} onChange={e=>setEmail(e.target.value)}/></label>{error&&<div className="form-error">{error}</div>}<div><button className="hero-btn" disabled={busy}>{busy?'Criando...':'Criar empresa'} <CheckCircle2 size={16}/></button></div></form></section></div>
+}
+
+function CompanyDetail(){
+  const{id}=useParams();const{companies}=useTenant();const c=companies.find(x=>x.id===id);const navigate=useNavigate()
+  if(!c)return <div className="content"><section className="panel"><CircleAlert size={30}/><h2>Empresa não encontrada</h2><button className="hero-btn" onClick={()=>navigate('/admin/empresas')}>Voltar</button></section></div>
+  return <div className="content"><div className="head"><div><button className="back-link" onClick={()=>navigate('/admin/empresas')}><ArrowLeft size={15}/> Empresas</button><h1>{c.name}</h1><p>{c.cnpj||'CNPJ não informado'}</p></div><button className="hero-btn" onClick={()=>navigate('/dashboard')}><LayoutDashboard size={16}/> Abrir operação</button></div><div className="metrics"><Metric label="Status" value="Ativa"/><Metric label="Usuários" value="—"/><Metric label="Profissionais" value="—"/><Metric label="Pacientes" value="—"/></div><div className="grid"><section className="panel"><h2>Dados da empresa</h2><div className="row"><span><b>Razão social</b><small>{c.legal_name||'Não informada'}</small></span></div><div className="row"><span><b>Telefone</b><small>{c.phone||'Não informado'}</small></span></div><div className="row"><span><b>E-mail</b><small>{c.email||'Não informado'}</small></span></div></section><section className="panel"><h2>Integrações</h2><div className="wa"><Wifi size={20}/><span><b>WhatsApp</b><small>Configure a integração no contexto da empresa.</small></span></div></section></div></div>
+}
+
+function Permissions(){const roles=[['Owner','Acesso total à empresa'],['Admin','Gestão operacional e usuários'],['Atendente','Agenda, pacientes e mensagens'],['Profissional','Agenda e próprios atendimentos']];return <div className="content"><div className="head"><div><h1>Permissões</h1><p>Perfis padrão do Consulta Pro.</p></div></div><section className="panel">{roles.map(([role,desc])=><div className="row" key={role}><ShieldCheck size={18}/><span><b>{role}</b><small>{desc}</small></span><CheckCircle2 size={17}/></div>)}</section></div>}
+
+function AdminMessages(){const[period,setPeriod]=useState('30');const[count,setCount]=useState(0);useEffect(()=>{async function load(){if(!supabase)return;const since=new Date(Date.now()-Number(period)*86400000).toISOString();const{count}=await supabase.from('whatsapp_messages').select('*',{count:'exact',head:true}).gte('created_at',since);setCount(count||0)}load()},[period]);return <div className="content"><div className="head"><div><h1>Mensagens</h1><p>Mensageria global da plataforma.</p></div><select className="company-select" value={period} onChange={e=>setPeriod(e.target.value)}><option value="1">Hoje</option><option value="7">7 dias</option><option value="30">30 dias</option></select></div><div className="metrics"><Metric label="Mensagens no período" value={count} icon={MessageCircle}/><Metric label="Status" value="Monitorando" icon={Activity}/></div><section className="panel"><h2>Visão de operação</h2><p>Os eventos reais do WhatsApp serão consolidados aqui conforme as integrações forem utilizadas.</p></section></div>}
+
+function AdminPlaceholder({title,description,icon:Icon}:{title:string;description:string;icon:Icon}){return <div className="content"><div className="head"><div><h1>{title}</h1><p>{description}</p></div></div><section className="panel placeholder"><Icon size={42}/><h2>{title}</h2><p>A estrutura administrativa está pronta para os dados reais do Supabase.</p></section></div>}
+
+function Empty({text}:{text:string}){return <div className="empty-box"><p>{text}</p></div>}
+
+function TenantLayout(){
+  const{activeCompany,companies,setActiveCompany}=useTenant();const navigate=useNavigate()
+  async function logout(){await supabase?.auth.signOut();navigate('/login')}
+  if(!activeCompany)return <div className="content"><section className="panel"><Building2 size={36}/><h2>Nenhuma empresa vinculada</h2><p>Seu usuário ainda não possui um consultório associado.</p></section></div>
+  return <div className="layout"><aside><Logo/><div className="company"><strong>{activeCompany.name}</strong><small>Tenant ativo</small></div>{companies.length>1&&<select className="company-select" value={activeCompany.id} onChange={e=>{const c=companies.find(x=>x.id===e.target.value);if(c)setActiveCompany(c)}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<nav>{tenantNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={17}/>{label}</NavLink>)}</nav><div className="profile"><b>U</b><span>Conta<small>Tenant protegido por RLS</small></span><button onClick={logout}><LogOut size={15}/></button></div></aside><main><header><strong>{activeCompany.name}</strong><span>Operação</span></header><Routes><Route index element={<Navigate to="/dashboard" replace/>}/><Route path="dashboard" element={<TenantDashboard/>}/>{tenantNav.slice(1).map(([path,label,Icon])=><Route key={path} path={path.slice(1)} element={<AdminPlaceholder title={label} description={'Gerencie '+label.toLowerCase()+' da empresa.'} icon={Icon}/>}/>}<Route path="*" element={<Navigate to="/dashboard" replace/>}/></Routes></main></div>
+}
+
+function TenantDashboard(){const{activeCompany}=useTenant();return <div className="content"><div className="head"><div><h1>Dashboard</h1><p>{activeCompany?.name}</p></div><button className="hero-btn"><Plus size={16}/> Novo atendimento</button></div><div className="metrics"><Metric label="Consultas hoje" value="0"/><Metric label="Confirmadas" value="0"/><Metric label="Pendentes" value="0"/><Metric label="Realizadas" value="0"/></div><div className="grid"><section className="panel"><h2>Próximos atendimentos</h2><Empty text="Os atendimentos reais aparecerão aqui." /></section><section className="panel"><h2>WhatsApp</h2><div className="wa"><MessageCircle size={20}/><span><b>Nenhuma integração conectada</b><small>Configure o número da empresa.</small></span></div></section></div></div>}
+
+export default function App(){return <Routes><Route path="/" element={<Landing/>}/><Route path="/login" element={<Login/>}/><Route path="/app/*" element={<SessionGate/>}/><Route path="/dashboard" element={<SessionGate/>}/><Route path="/admin/*" element={<SessionGate/>}/><Route path="*" element={<Navigate to="/" replace/>}/Routes>}
