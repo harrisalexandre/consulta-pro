@@ -35,7 +35,7 @@ const adminNav: [string, string, Icon][] = [
 ]
 
 function Logo() {
-  return <div className="logo"><b>C</b> Consulta Pro</div>
+  return <div className="app-logo"><img src="/favicon.svg" alt="Consulta Pro" /><span>Consulta Pro</span></div>
 }
 
 function Login() {
