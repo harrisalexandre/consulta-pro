@@ -1,0 +1,7 @@
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { supabase } from '../lib/supabase'
+type Company={id:string;name:string;legal_name?:string|null;cnpj?:string|null}
+type TenantContextValue={companies:Company[];activeCompany:Company|null;loading:boolean;setActiveCompany:(c:Company)=>void;refresh:()=>Promise<void>}
+const TenantContext=createContext<TenantContextValue|null>(null)
+export function TenantProvider({children}:{children:ReactNode}){const[companies,setCompanies]=useState<Company[]>([]);const[activeCompany,setActive]=useState<Company|null>(null);const[loading,setLoading]=useState(true);const refresh=async()=>{if(!supabase){setLoading(false);return}setLoading(true);const{data,error}=await supabase.from('companies').select('id,name,legal_name,cnpj').order('name');if(!error){setCompanies(data||[]);const saved=localStorage.getItem('consulta-pro-company');const selected=(data||[]).find(c=>c.id===saved)||(data||[])[0]||null;setActive(selected)}setLoading(false)};useEffect(()=>{refresh()},[]);const setActiveCompany=(c:Company)=>{setActive(c);localStorage.setItem('consulta-pro-company',c.id)};return <TenantContext.Provider value={{companies,activeCompany,loading,setActiveCompany,refresh}}>{children}</TenantContext.Provider>}
+export function useTenant(){const v=useContext(TenantContext);if(!v)throw new Error('useTenant must be used inside TenantProvider');return v}
