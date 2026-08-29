@@ -408,8 +408,8 @@ const landingHtml = `<header>
       <a href="#para-quem-e">Para quem é</a>
     </nav>
     <div class="nav-actions">
-      <a href="https://consulta-pro.onrender.com/login" class="btn btn-ghost">Entrar</a>
-      <a href="https://consulta-pro.onrender.com/login" class="btn btn-primary">Começar agora</a>
+      <a href="/login" class="btn btn-ghost">Entrar</a>
+      <a href="/login" class="btn btn-primary">Começar agora</a>
     </div>
     <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false">
       <span></span><span></span><span></span>
@@ -420,8 +420,8 @@ const landingHtml = `<header>
     <a href="#recursos">Recursos</a>
     <a href="#como-funciona">Como funciona</a>
     <a href="#para-quem-e">Para quem é</a>
-    <a href="https://consulta-pro.onrender.com/login" class="btn btn-ghost btn-block">Entrar</a>
-    <a href="https://consulta-pro.onrender.com/login" class="btn btn-primary btn-block">Começar agora</a>
+    <a href="/login" class="btn btn-ghost btn-block">Entrar</a>
+    <a href="/login" class="btn btn-primary btn-block">Começar agora</a>
   </div>
 </header>
 
@@ -435,7 +435,7 @@ const landingHtml = `<header>
         <h1>Seu consultório organizado.<br>Seu atendimento mais simples.</h1>
         <p class="hero-sub">Agenda, pacientes, profissionais e lembretes de WhatsApp em um único lugar.</p>
         <div class="hero-actions">
-          <a href="https://consulta-pro.onrender.com/login" class="btn btn-primary">Começar agora</a>
+          <a href="/login" class="btn btn-primary">Começar agora</a>
           <a href="#solucao" class="btn btn-ghost">Conhecer o sistema</a>
         </div>
         <div class="hero-trust">
@@ -767,8 +767,8 @@ const landingHtml = `<header>
       <h2>Pronto para organizar seu consultório?</h2>
       <p>Comece a centralizar sua agenda, seus pacientes e seus atendimentos.</p>
       <div class="final-cta-actions">
-        <a href="https://consulta-pro.onrender.com/login" class="btn btn-primary">Começar agora</a>
-        <a href="https://consulta-pro.onrender.com/login" class="btn btn-ghost">Entrar</a>
+        <a href="/login" class="btn btn-primary">Começar agora</a>
+        <a href="/login" class="btn btn-ghost">Entrar</a>
       </div>
     </div>
   </section>
@@ -784,7 +784,7 @@ const landingHtml = `<header>
         <a href="#recursos">Recursos</a>
         <a href="#">Privacidade</a>
         <a href="#">Termos</a>
-        <a href="https://consulta-pro.onrender.com/login">Entrar</a>
+        <a href="/login">Entrar</a>
       </div>
     </div>
     <p class="copyright">© 2026 Consulta Pro</p>
