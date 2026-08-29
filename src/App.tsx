@@ -1,0 +1,5 @@
+import {NavLink,Routes,Route} from 'react-router-dom';
+const items=[['/dashboard','Dashboard'],['/agenda','Agenda'],['/pacientes','Pacientes'],['/profissionais','Profissionais'],['/whatsapp','WhatsApp'],['/automacoes','Automações'],['/configuracoes','Configurações']];
+function Layout(){return <div><aside><h2>Consulta Pro</h2><p>Clínica Médica Santiago</p><nav>{items.map(x=><NavLink key={x[0]} to={x[0]}>{x[1]}</NavLink>)}</nav></aside><main><Routes><Route path='*' element={<Home/>}/></Routes></main></div>}
+function Home(){return <div><h1>Bom dia, Alexandre</h1><p>Resumo do seu consultório.</p><button>Novo atendimento</button><hr/><h2>Próximos atendimentos</h2><p>10:45 · João Silva · Dr. Carlos Mendes</p><p>11:30 · Maria Souza · Dra. Marina Costa</p><p>14:00 · Pedro Alves · Dr. Rafael Lima</p><h2>WhatsApp</h2><p>Conectado · +55 55 99999-0000</p></div>}
+export default function App(){return <Routes><Route path='*' element={<Layout/>}/></Routes>}
