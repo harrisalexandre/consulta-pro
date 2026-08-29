@@ -104,17 +104,8 @@ const landingCss = `
     display:flex;align-items:center;gap:8px;
   }
   .logo-mark{
-    width:26px;height:26px;border-radius:7px;
-    background:var(--green-deep);
-    position:relative;flex-shrink:0;
-  }
-  .logo-mark::after{
-    content:"";position:absolute;inset:7px 7px 11px 7px;
-    border-radius:2px;background:var(--cream);
-  }
-  .logo-mark::before{
-    content:"";position:absolute;left:7px;right:7px;top:11px;height:2px;background:var(--green-deep);
-    box-shadow:0 4px 0 var(--green-deep);
+    width:34px;height:34px;border-radius:9px;
+    flex-shrink:0;object-fit:cover;
   }
   .nav-links{display:flex;align-items:center;gap:36px;}
   .nav-links a{font-size:14.5px;font-weight:500;color:var(--stone-800);transition:color .15s;}
@@ -407,7 +398,7 @@ const landingCss = `
 `
 const landingHtml = `<header>
   <div class="container nav">
-    <a href="#" class="logo"><span class="logo-mark"></span>Consulta Pro</a>
+    <a href="#" class="logo"><img class="logo-mark" src="/favicon.svg" alt="Consulta Pro">Consulta Pro</a>
     <nav class="nav-links">
       <a href="#solucao">Produto</a>
       <a href="#recursos">Recursos</a>
