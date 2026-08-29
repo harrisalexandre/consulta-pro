@@ -57,7 +57,7 @@ function Login() {
 
 function SessionGate() {
   const [state,setState]=useState<'loading'|'admin'|'tenant'|'none'>('loading')
-  useEffect(()=>{let alive=true;async function load(){if(!supabase){setState('none');return}const{data:{session}}=await supabase.auth.getSession();if(!session){if(alive)setState('none');return}const{data}=await supabase.from('profiles').select('is_superadmin').eq('id',session.user.id).maybeSingle();if(alive)setState(data?.is_superadmin?'admin':'tenant')}load();const{data}=supabase?.auth.onAuthStateChange(()=>load())||{data:{subscription:{unsubscribe(){}}}};return()=>{alive=false;data.subscription.unsubscribe()}}
+  useEffect(()=>{let alive=true;async function load(){if(!supabase){setState('none');return}const{data:{session}}=await supabase.auth.getSession();if(!session){if(alive)setState('none');return}const{data}=await supabase.from('profiles').select('is_superadmin').eq('id',session.user.id).maybeSingle();const jwtAdmin=session.user.app_metadata?.role==='superadmin'||session.user.app_metadata?.is_superadmin===true;if(alive)setState(data?.is_superadmin||jwtAdmin?'admin':'tenant')}load();const{data}=supabase?.auth.onAuthStateChange(()=>load())||{data:{subscription:{unsubscribe(){}}}};return()=>{alive=false;data.subscription.unsubscribe()}}
   ,[])
   if(state==='loading')return <div className="auth"><div className="panel">Carregando sessão...</div></div>
   if(state==='none')return <Navigate to="/login" replace/>
