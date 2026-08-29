@@ -9,7 +9,7 @@ import { supabase } from './lib/supabase'
 import { useTenant } from './contexts/TenantContext'
 
 type Company = { id: string; name: string; legal_name?: string | null; cnpj?: string | null; phone?: string | null; email?: string | null }
-type Icon = React.ComponentType<{ size?: number; className?: string }>
+type Icon = React.ElementType
 
 const tenantNav: [string, string, Icon][] = [
   ['/dashboard', 'Dashboard', LayoutDashboard],
