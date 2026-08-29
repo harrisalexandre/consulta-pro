@@ -27,3 +27,10 @@ SPA Rewrite: /* -> /index.html
 npm install
 npm run dev
 npm run build
+
+## Gestão de acesso das empresas
+- O superadmin cria a empresa em **Administração > Empresas > Nova empresa**.
+- Dentro da empresa, em **Acesso da empresa**, pode criar o primeiro login com nome, e-mail, senha e perfil Owner/Admin.
+- A criação do usuário é feita pela Edge Function `superadmin-create-company-user`, nunca com service role no frontend.
+- O usuário criado é confirmado no Supabase Auth, recebe um registro em `profiles` e é vinculado à empresa em `company_users`.
+- O login da empresa é feito pela rota `/login`.
