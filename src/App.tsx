@@ -80,9 +80,108 @@ function NewCompany(){
 }
 
 function CompanyDetail(){
-  const{id}=useParams();const{companies}=useTenant();const c=companies.find(x=>x.id===id);const navigate=useNavigate()
-  if(!c)return <div className="content"><section className="panel"><CircleAlert size={30}/><h2>Empresa não encontrada</h2><button className="hero-btn" onClick={()=>navigate('/admin/empresas')}>Voltar</button></section></div>
-  return <div className="content"><div className="head"><div><button className="back-link" onClick={()=>navigate('/admin/empresas')}><ArrowLeft size={15}/> Empresas</button><h1>{c.name}</h1><p>{c.cnpj||'CNPJ não informado'}</p></div><button className="hero-btn" onClick={()=>navigate('/dashboard')}><LayoutDashboard size={16}/> Abrir operação</button></div><div className="metrics"><Metric label="Status" value="Ativa"/><Metric label="Usuários" value="—"/><Metric label="Profissionais" value="—"/><Metric label="Pacientes" value="—"/></div><div className="grid"><section className="panel"><h2>Dados da empresa</h2><div className="row"><span><b>Razão social</b><small>{c.legal_name||'Não informada'}</small></span></div><div className="row"><span><b>Telefone</b><small>{c.phone||'Não informado'}</small></span></div><div className="row"><span><b>E-mail</b><small>{c.email||'Não informado'}</small></span></div></section><section className="panel"><h2>Integrações</h2><div className="wa"><Wifi size={20}/><span><b>WhatsApp</b><small>Configure a integração no contexto da empresa.</small></span></div></section></div></div>
+  const{id}=useParams();
+  const{companies}=useTenant();
+  const c=companies.find(x=>x.id===id);
+  const navigate=useNavigate();
+  const[users,setUsers]=useState<any[]>([]);
+  const[userName,setUserName]=useState('');
+  const[userEmail,setUserEmail]=useState('');
+  const[userPassword,setUserPassword]=useState('');
+  const[userRole,setUserRole]=useState<'owner'|'admin'>('owner');
+  const[userBusy,setUserBusy]=useState(false);
+  const[userError,setUserError]=useState('');
+  const[userSuccess,setUserSuccess]=useState('');
+
+  async function loadUsers(){
+    if(!supabase||!id)return;
+    const{data,error}=await supabase
+      .from('company_users')
+      .select('user_id,role,status,created_at,profiles(full_name)')
+      .eq('company_id',id)
+      .order('created_at');
+    if(error)console.error('Erro ao carregar usuários da empresa:',error);
+    setUsers(data||[]);
+  }
+
+  useEffect(()=>{loadUsers()},[id]);
+
+  async function createCompanyUser(e:React.FormEvent){
+    e.preventDefault();
+    if(!supabase||!id)return;
+    setUserBusy(true);
+    setUserError('');
+    setUserSuccess('');
+    const{data,error}=await supabase.functions.invoke('superadmin-create-company-user',{
+      body:{company_id:id,full_name:userName,email:userEmail,password:userPassword,role:userRole}
+    });
+    if(error){
+      setUserError(error.message||'Não foi possível criar o acesso.');
+    }else if(data?.error){
+      setUserError(data.error);
+    }else{
+      setUserSuccess(`Acesso criado para ${userEmail}. O usuário já pode entrar em /login.`);
+      setUserName('');
+      setUserEmail('');
+      setUserPassword('');
+      setUserRole('owner');
+      await loadUsers();
+    }
+    setUserBusy(false);
+  }
+
+  if(!c)return <div className="content"><section className="panel"><CircleAlert size={30}/><h2>Empresa não encontrada</h2><button className="hero-btn" onClick={()=>navigate('/admin/empresas')}>Voltar</button></section></div>;
+
+  return <div className="content">
+    <div className="head">
+      <div>
+        <button className="back-link" onClick={()=>navigate('/admin/empresas')}><ArrowLeft size={15}/> Empresas</button>
+        <h1>{c.name}</h1>
+        <p>{c.cnpj||'CNPJ não informado'}</p>
+      </div>
+      <button className="hero-btn" onClick={()=>navigate('/dashboard')}><LayoutDashboard size={16}/> Abrir operação</button>
+    </div>
+
+    <div className="metrics">
+      <Metric label="Status" value="Ativa"/>
+      <Metric label="Usuários" value={users.length}/>
+      <Metric label="Profissionais" value="—"/>
+      <Metric label="Pacientes" value="—"/>
+    </div>
+
+    <div className="grid">
+      <section className="panel">
+        <h2>Dados da empresa</h2>
+        <div className="row"><span><b>Razão social</b><small>{c.legal_name||'Não informada'}</small></span></div>
+        <div className="row"><span><b>Telefone</b><small>{c.phone||'Não informado'}</small></span></div>
+        <div className="row"><span><b>E-mail</b><small>{c.email||'Não informado'}</small></span></div>
+      </section>
+      <section className="panel">
+        <h2>Integrações</h2>
+        <div className="wa"><Wifi size={20}/><span><b>WhatsApp</b><small>Configure a integração no contexto da empresa.</small></span></div>
+      </section>
+    </div>
+
+    <section className="panel">
+      <div className="head">
+        <div><h2>Acesso da empresa</h2><p>Crie o primeiro usuário que poderá entrar no Consulta Pro e operar este consultório.</p></div>
+      </div>
+      <form className="form-grid" onSubmit={createCompanyUser}>
+        <label>Nome completo*<input required value={userName} onChange={e=>setUserName(e.target.value)} placeholder="Responsável pelo consultório"/></label>
+        <label>E-mail de login*<input required type="email" value={userEmail} onChange={e=>setUserEmail(e.target.value)} placeholder="responsavel@consultorio.com"/></label>
+        <label>Senha inicial*<input required minLength={8} type="password" value={userPassword} onChange={e=>setUserPassword(e.target.value)} placeholder="Mínimo de 8 caracteres"/></label>
+        <label>Perfil*<select value={userRole} onChange={e=>setUserRole(e.target.value as 'owner'|'admin')}><option value="owner">Owner — acesso total</option><option value="admin">Admin — gestão da empresa</option></select></label>
+        {userError&&<div className="form-error">{userError}</div>}
+        {userSuccess&&<div className="form-success">{userSuccess}</div>}
+        <div><button className="hero-btn" disabled={userBusy}>{userBusy?'Criando acesso...':'Criar acesso'} <CheckCircle2 size={16}/></button></div>
+      </form>
+    </section>
+
+    <section className="panel">
+      <h2>Usuários vinculados</h2>
+      {users.length===0?<div className="empty-box"><Users size={30}/><p>Nenhum usuário possui acesso a esta empresa.</p></div>:users.map(u=><div className="row" key={u.user_id}><UserRound size={18}/><span><b>{u.profiles?.full_name||'Usuário'}</b><small>{u.role==='owner'?'Owner':'Admin'} · criado em {new Date(u.created_at).toLocaleDateString('pt-BR')}</small></span><i>{u.status}</i></div>)}
+    </section>
+  </div>
 }
 
 function Permissions(){const roles=[['Owner','Acesso total à empresa'],['Admin','Gestão operacional e usuários'],['Atendente','Agenda, pacientes e mensagens'],['Profissional','Agenda e próprios atendimentos']];return <div className="content"><div className="head"><div><h1>Permissões</h1><p>Perfis padrão do Consulta Pro.</p></div></div><section className="panel">{roles.map(([role,desc])=><div className="row" key={role}><ShieldCheck size={18}/><span><b>{role}</b><small>{desc}</small></span><CheckCircle2 size={17}/></div>)}</section></div>}
