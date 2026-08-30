@@ -357,89 +357,21 @@ function AgendaPage(){
   </TenantPage>
 }
 function WhatsAppPage(){
-  const{activeCompany}=useTenant();
-  const[item,setItem]=useState<any>(null);
-  const[templates,setTemplates]=useState<any[]>([]);
-  const[messages,setMessages]=useState<any[]>([]);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[provider,setProvider]=useState('evolution');
-  const[instance,setInstance]=useState('');
-  const[phone,setPhone]=useState('');
-  const[status,setStatus]=useState('disconnected');
-  const[name,setName]=useState('');
-  const[category,setCategory]=useState('lembrete');
-  const[body,setBody]=useState('');
-  const[editingTemplate,setEditingTemplate]=useState<any>(null);\n  const[templateForm,setTemplateForm]=useState(false);
-  const[error,setError]=useState('');
-  const[success,setSuccess]=useState('');
-
-  async function load(){
-    if(!supabase||!activeCompany)return;
-    setLoading(true);setError('');
-    const[w,t,m]=await Promise.all([
-      supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle(),
-      supabase.from('message_templates').select('*').eq('company_id',activeCompany.id).order('created_at',{ascending:false}),
-      supabase.from('whatsapp_messages').select('id,recipient_number,direction,kind,body,status,sent_at,created_at').eq('company_id',activeCompany.id).order('created_at',{ascending:false}).limit(20)
-    ]);
-    if(w.error)setError(w.error.message);
-    if(t.error)setError(t.error.message);
-    if(m.error)setError(m.error.message);
-    const data=w.data;setItem(data||null);setProvider(data?.provider||'evolution');setInstance(data?.instance_name||'');setPhone(data?.phone_number||'');setStatus(data?.status||'disconnected');
-    setTemplates(t.data||[]);setMessages(m.data||[]);setLoading(false);
-  }
+  const{activeCompany}=useTenant();const[item,setItem]=useState<any>(null);const[templates,setTemplates]=useState<any[]>([]);const[messages,setMessages]=useState<any[]>([]);
+  const[loading,setLoading]=useState(true);const[saving,setSaving]=useState(false);const[provider,setProvider]=useState('evolution_api');const[instance,setInstance]=useState('');const[phone,setPhone]=useState('');const[status,setStatus]=useState('disconnected');
+  const[name,setName]=useState('');const[category,setCategory]=useState('lembrete');const[body,setBody]=useState('');const[editingTemplate,setEditingTemplate]=useState<any>(null);const[templateForm,setTemplateForm]=useState(false);const[error,setError]=useState('');const[success,setSuccess]=useState('');const[filter,setFilter]=useState('');
+  async function load(){if(!supabase||!activeCompany)return;setLoading(true);setError('');const[w,t,m]=await Promise.all([supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle(),supabase.from('message_templates').select('*').eq('company_id',activeCompany.id).order('created_at',{ascending:false}),supabase.from('whatsapp_messages').select('id,recipient_number,direction,kind,body,status,sent_at,created_at').eq('company_id',activeCompany.id).order('created_at',{ascending:false}).limit(50)]);if(w.error||t.error||m.error)setError(w.error?.message||t.error?.message||m.error?.message||'Não foi possível carregar o WhatsApp.');const d=w.data;setItem(d||null);setProvider(d?.provider||'evolution_api');setInstance(d?.instance_name||'');setPhone(d?.phone_number||'');setStatus(d?.status||'disconnected');setTemplates(t.data||[]);setMessages(m.data||[]);setLoading(false)}
   useEffect(()=>{load()},[activeCompany?.id]);
-
-  async function saveIntegration(e:React.FormEvent){
-    e.preventDefault();if(!supabase||!activeCompany)return;
-    setSaving(true);setError('');setSuccess('');
-    const payload={company_id:activeCompany.id,provider:provider.trim()||'evolution_api',instance_name:instance.trim()||null,phone_number:phone.trim()||null,status};
-    const result=item?await supabase.from('whatsapp_integrations').update(payload).eq('id',item.id).eq('company_id',activeCompany.id):await supabase.from('whatsapp_integrations').insert(payload);
-    if(result.error)setError(result.error.message);else{setSuccess('Configuração do WhatsApp salva.');await load()}setSaving(false);
-  }
-
-  function editTemplate(t:any){setEditingTemplate(t);setName(t.name);setCategory(t.category);setBody(t.body);setError('');setSuccess('')}
-  function newTemplate(){setEditingTemplate(null);setName('');setCategory('lembrete');setBody('');setError('');setSuccess('')}
-  async function saveTemplate(e:React.FormEvent){
-    e.preventDefault();if(!supabase||!activeCompany)return;
-    setSaving(true);setError('');setSuccess('');
-    const payload={company_id:activeCompany.id,name:name.trim(),category,body:body.trim(),active:true};
-    const result=editingTemplate?await supabase.from('message_templates').update(payload).eq('id',editingTemplate.id).eq('company_id',activeCompany.id):await supabase.from('message_templates').insert(payload);
-    if(result.error)setError(result.error.message);else{setSuccess('Template salvo com sucesso.');closeTemplate();await load()}setSaving(false);
-  }
-  async function toggleTemplate(t:any){
-    if(!supabase||!activeCompany)return;
-    const{error}=await supabase.from('message_templates').update({active:!t.active}).eq('id',t.id).eq('company_id',activeCompany.id);
-    if(error)setError(error.message);else load();
-  }
-
+  async function saveIntegration(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;setSaving(true);setError('');setSuccess('');const payload={company_id:activeCompany.id,provider:provider.trim()||'evolution_api',instance_name:instance.trim()||null,phone_number:phone.trim()||null,status};const result=item?await supabase.from('whatsapp_integrations').update(payload).eq('id',item.id).eq('company_id',activeCompany.id):await supabase.from('whatsapp_integrations').insert(payload);if(result.error)setError(result.error.message);else{setSuccess('Configuração salva.');await load()}setSaving(false)}
+  function newTemplate(){setEditingTemplate(null);setName('');setCategory('lembrete');setBody('');setError('');setTemplateForm(true)}
+  function editTemplate(t:any){setEditingTemplate(t);setName(t.name||'');setCategory(t.category||'geral');setBody(t.body||'');setError('');setTemplateForm(true)}
+  async function saveTemplate(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;setSaving(true);setError('');const payload={company_id:activeCompany.id,name:name.trim(),category,body:body.trim(),active:true};const result=editingTemplate?await supabase.from('message_templates').update(payload).eq('id',editingTemplate.id).eq('company_id',activeCompany.id):await supabase.from('message_templates').insert(payload);if(result.error)setError(result.error.message);else{setSuccess('Template salvo.');setTemplateForm(false);await load()}setSaving(false)}
+  async function toggleTemplate(t:any){if(!supabase||!activeCompany)return;const{error}=await supabase.from('message_templates').update({active:!t.active}).eq('id',t.id).eq('company_id',activeCompany.id);if(error)setError(error.message);else load()}
+  const filtered=messages.filter(m=>!filter||String(m.recipient_number||'').includes(filter)||String(m.body||'').toLowerCase().includes(filter.toLowerCase()));
   return <TenantPage title="WhatsApp" description="Integração, mensagens padrão e histórico do consultório.">
-    <section className="panel">
-      <div className="head"><div><h2>Integração</h2><p>Configuração vinculada à empresa ativa.</p></div><i>{status==='connected'?'Conectado':status==='connecting'?'Conectando':status==='error'?'Erro':'Desconectado'}</i></div>
-      {loading?<div className="empty-box">Carregando...</div>:<form className="form-grid" onSubmit={saveIntegration}>
-        <label>Provedor<select value={provider} onChange={e=>setProvider(e.target.value)}><option value="evolution_api">Evolution API</option><option value="other">Outro provedor</option></select></label>
-        <label>Nome da instância<input value={instance} onChange={e=>setInstance(e.target.value)} placeholder="consultorio-01"/></label>
-        <label>Número do WhatsApp<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+55 11 99999-9999"/></label>
-        <label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="disconnected">Desconectado</option><option value="connecting">Conectando</option><option value="connected">Conectado</option><option value="error">Erro</option></select></label>
-        <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar configuração'} <CheckCircle2 size={16}/></button></div>
-      </form>}
-    </section>
-
-    <section className="panel">
-      <div className="head"><div><h2>Mensagens padrão</h2><p>Templates reutilizáveis para lembretes e comunicação.</p></div><button className="hero-btn" onClick={newTemplate}><Plus size={16}/> Novo template</button></div>
-      {templates.length===0?<div className="empty-box"><MessageCircle size={30}/><h2>Nenhum template</h2><p>Crie sua primeira mensagem padrão.</p></div>:templates.map(t=><div className="row" key={t.id}><MessageCircle size={18}/><span><b>{t.name}</b><small>{t.category} · {t.body}</small></span><i>{t.active?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>editTemplate(t)}>Editar</button><button className="back-link" onClick={()=>toggleTemplate(t)}>{t.active?'Desativar':'Ativar'}</button></div>)}
-      {templateForm&&<form className="form-grid" onSubmit={saveTemplate}>
-        <label>Nome*<input required value={name} onChange={e=>setName(e.target.value)} placeholder="Lembrete de consulta"/></label>
-        <label>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="lembrete">Lembrete</option><option value="confirmacao">Confirmação</option><option value="pos_consulta">Pós-consulta</option><option value="geral">Geral</option></select></label>
-        <label className="full-field">Mensagem*<textarea required rows={5} value={body} onChange={e=>setBody(e.target.value)} placeholder="Olá {{paciente}}, sua consulta está marcada para {{data}} às {{hora}}."/></label>
-        <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar template'} <CheckCircle2 size={16}/></button></div>
-      </form>}
-    </section>
-
-    <section className="panel">
-      <div className="head"><div><h2>Histórico de mensagens</h2><p>Últimas 20 mensagens registradas.</p></div></div>
-      {messages.length===0?<div className="empty-box"><MessageCircle size={30}/><p>Nenhuma mensagem registrada ainda.</p></div>:messages.map(m=><div className="row" key={m.id}><MessageCircle size={17}/><span><b>{m.direction==='outbound'?'Enviada':'Recebida'} · {m.recipient_number||'Número não informado'}</b><small>{m.body} · {new Date(m.created_at).toLocaleString('pt-BR')}</small></span><i>{m.status||'registrada'}</i></div>)}
-    </section>
+    <section className="panel"><div className="head"><div><h2>Conexão</h2><p>Configuração vinculada ao consultório ativo.</p></div><i>{status==='connected'?'Conectado':status==='connecting'?'Conectando':status==='error'?'Erro':'Desconectado'}</i></div>{loading?<div className="empty-box">Carregando...</div>:<form className="form-grid" onSubmit={saveIntegration}><label>Provedor<select value={provider} onChange={e=>setProvider(e.target.value)}><option value="evolution_api">Evolution API</option><option value="other">Outro provedor</option></select></label><label>Instância<input value={instance} onChange={e=>setInstance(e.target.value)} placeholder="consultorio-01"/></label><label>Número<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+55 11 99999-9999"/></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="disconnected">Desconectado</option><option value="connecting">Conectando</option><option value="connected">Conectado</option><option value="error">Erro</option></select></label><div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar configuração'} <CheckCircle2 size={16}/></button></div></form>}</section>
+    <section className="panel"><div className="head"><div><h2>Mensagens padrão</h2><p>Templates reutilizáveis para automações e atendimento.</p></div><button className="hero-btn" onClick={newTemplate}><Plus size={16}/> Novo template</button></div>{templates.length===0?<div className="empty-box"><MessageCircle size={30}/><h2>Nenhum template</h2><p>Crie a primeira mensagem padrão.</p></div>:templates.map(t=><div className="row" key={t.id}><MessageCircle size={18}/><span><b>{t.name}</b><small>{t.category} · {t.body}</small></span><i>{t.active?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>editTemplate(t)}>Editar</button><button className="back-link" onClick={()=>toggleTemplate(t)}>{t.active?'Desativar':'Ativar'}</button></div>)}{templateForm&&<form className="form-grid" onSubmit={saveTemplate}><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="lembrete">Lembrete</option><option value="confirmacao">Confirmação</option><option value="pos_consulta">Pós-consulta</option><option value="geral">Geral</option></select></label><label className="full-field">Mensagem*<textarea required rows={5} value={body} onChange={e=>setBody(e.target.value)} placeholder="Olá {{paciente}}, sua consulta está marcada para {{data}} às {{hora}}."/></label><div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar template'}</button> <button type="button" className="back-link" onClick={()=>setTemplateForm(false)}>Cancelar</button></div></form>}</section>
+    <section className="panel"><div className="head"><div><h2>Histórico</h2><p>Últimas mensagens registradas.</p></div><input style={{maxWidth:260}} value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Filtrar número ou texto..."/></div>{loading?<div className="empty-box">Carregando...</div>:filtered.length===0?<div className="empty-box"><MessageCircle size={30}/><p>Nenhuma mensagem encontrada.</p></div>:filtered.map(m=><div className="row" key={m.id}><MessageCircle size={17}/><span><b>{m.direction==='outbound'?'Enviada':'Recebida'} · {m.recipient_number||'Número não informado'}</b><small>{m.body||'Sem conteúdo'} · {new Date(m.created_at).toLocaleString('pt-BR')}</small></span><i>{m.status||'registrada'}</i></div>)}</section>
     {error&&<div className="form-error">{error}</div>}{success&&<div className="form-success">{success}</div>}
   </TenantPage>
 }
