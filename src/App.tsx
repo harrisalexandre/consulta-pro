@@ -221,6 +221,18 @@ function CompanyDetail(){
 
 function Permissions(){const roles=[['Owner','Acesso total à empresa'],['Admin','Gestão operacional e usuários'],['Atendente','Agenda, pacientes e mensagens'],['Profissional','Agenda e próprios atendimentos']];return <div className="content"><div className="head"><div><h1>Permissões</h1><p>Perfis padrão do Consulta Pro.</p></div></div><section className="panel">{roles.map(([role,desc])=><div className="row" key={role}><ShieldCheck size={18}/><span><b>{role}</b><small>{desc}</small></span><CheckCircle2 size={17}/></div>)}</section></div>}
 
+function AdminUsers(){
+  const[users,setUsers]=useState<any[]>([]); const[loading,setLoading]=useState(true); const[error,setError]=useState('');
+  async function load(){
+    if(!supabase)return;
+    setLoading(true); setError('');
+    const{data,error}=await supabase.from('company_users').select('user_id,company_id,role,status,created_at,profiles(full_name),companies(name)').order('created_at',{ascending:false});
+    if(error)setError(error.message); setUsers(data||[]); setLoading(false);
+  }
+  useEffect(()=>{load()},[]);
+  return <div className="content"><div className="head"><div><h1>Usuários</h1><p>Acessos vinculados aos consultórios da plataforma.</p></div></div><section className="panel">{loading?<div className="empty-box">Carregando usuários...</div>:error?<div className="form-error">{error}</div>:users.length===0?<div className="empty-box"><Users size={35}/><h2>Nenhum usuário</h2><p>Os acessos criados para as empresas aparecerão aqui.</p></div>:users.map(u=><div className="row" key={u.user_id}><UserRound size={18}/><span><b>{u.profiles?.full_name||'Usuário'}</b><small>{u.companies?.name||'Empresa'} · {u.role==='owner'?'Owner':u.role==='admin'?'Admin':u.role}</small></span><i>{u.status}</i><NavLink to={'/admin/empresas/'+u.company_id}>Gerenciar empresa</NavLink></div>)}</section></div>
+}
+
 function AdminMessages(){const[period,setPeriod]=useState('30');const[count,setCount]=useState(0);useEffect(()=>{async function load(){if(!supabase)return;const since=new Date(Date.now()-Number(period)*86400000).toISOString();const{count}=await supabase.from('whatsapp_messages').select('*',{count:'exact',head:true}).gte('created_at',since);setCount(count||0)}load()},[period]);return <div className="content"><div className="head"><div><h1>Mensagens</h1><p>Mensageria global da plataforma.</p></div><select className="company-select" value={period} onChange={e=>setPeriod(e.target.value)}><option value="1">Hoje</option><option value="7">7 dias</option><option value="30">30 dias</option></select></div><div className="metrics"><Metric label="Mensagens no período" value={count} icon={MessageCircle}/><Metric label="Status" value="Monitorando" icon={Activity}/></div><section className="panel"><h2>Visão de operação</h2><p>Os eventos reais do WhatsApp serão consolidados aqui conforme as integrações forem utilizadas.</p></section></div>}
 
 function AdminPlaceholder({title,description,icon:Icon}:{title:string;description:string;icon:Icon}){return <div className="content"><div className="head"><div><h1>{title}</h1><p>{description}</p></div></div><section className="panel placeholder"><Icon size={42}/><h2>{title}</h2><p>A estrutura administrativa está pronta para os dados reais do Supabase.</p></section></div>}
@@ -279,7 +291,7 @@ export default function App(){
         <Route path="admin/empresas" element={<AdminCompanies/>}/>
         <Route path="admin/empresas/nova" element={<NewCompany/>}/>
         <Route path="admin/empresas/:id" element={<CompanyDetail/>}/>
-        <Route path="admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="admin/usuarios" element={<AdminUsers/>}/>
         <Route path="admin/permissoes" element={<Permissions/>}/>
         <Route path="admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/>
         <Route path="admin/mensagens" element={<AdminMessages/>}/>
@@ -289,7 +301,7 @@ export default function App(){
         <Route path="empresas" element={<AdminCompanies/>}/>
         <Route path="empresas/nova" element={<NewCompany/>}/>
         <Route path="empresas/:id" element={<CompanyDetail/>}/>
-        <Route path="usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="usuarios" element={<AdminUsers/>}/>
         <Route path="permissoes" element={<Permissions/>}/>
         <Route path="mensagens" element={<AdminMessages/>}/>
         <Route path="atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
