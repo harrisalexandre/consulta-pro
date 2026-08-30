@@ -272,12 +272,9 @@ function ProfessionalsPage(){
 function AgendaPage(){
   const{activeCompany}=useTenant();
   const[today,setToday]=useState(()=>new Date());
-  const[items,setItems]=useState<any[]>([]);
-  const[patients,setPatients]=useState<any[]>([]);
-  const[pros,setPros]=useState<any[]>([]);
-  const[open,setOpen]=useState(false);
-  const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');
-  const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[error,setError]=useState('');
+  const[items,setItems]=useState<any[]>([]); const[patients,setPatients]=useState<any[]>([]); const[pros,setPros]=useState<any[]>([]);
+  const[open,setOpen]=useState(false); const[editing,setEditing]=useState<any>(null);
+  const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[error,setError]=useState('');
   const dayKey=today.toISOString().slice(0,10);
   const dayItems=useMemo(()=>items.filter(a=>new Date(a.starts_at).toISOString().slice(0,10)===dayKey),[items,dayKey]);
   async function load(){
@@ -291,38 +288,32 @@ function AgendaPage(){
     setItems(a.data||[]);setPatients(b.data||[]);setPros(c.data||[]);
   }
   useEffect(()=>{load()},[activeCompany?.id,dayKey]);
-  function openNew(){setDate(dayKey);setTime('09:00');setPatient('');setProfessional('');setNotes('');setError('');setOpen(true)}
+  function resetForm(){setEditing(null);setDate(dayKey);setTime('09:00');setPatient('');setProfessional('');setDuration('60');setType('Consulta');setNotes('');setError('');setOpen(true)}
+  function editAppointment(a:any){setEditing(a);setDate(new Date(a.starts_at).toISOString().slice(0,10));setTime(new Date(a.starts_at).toTimeString().slice(0,5));setPatient(a.patient_id);setProfessional(a.professional_id);setDuration(String(Math.round((new Date(a.ends_at).getTime()-new Date(a.starts_at).getTime())/60000)));setType(a.appointment_type||'Consulta');setNotes(a.notes||'');setError('');setOpen(true)}
   async function save(e:React.FormEvent){
     e.preventDefault();if(!supabase||!activeCompany)return;setError('');
     const start=new Date(date+'T'+time);const end=new Date(start.getTime()+Number(duration)*60000);
-    const{data:conflict}=await supabase.from('appointments').select('id').eq('company_id',activeCompany.id).eq('professional_id',professional).neq('status','cancelled').lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString()).limit(1);
+    const q=supabase.from('appointments').select('id').eq('company_id',activeCompany.id).eq('professional_id',professional).neq('status','cancelled').lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString());
+    const{data:conflict}=editing?await q.neq('id',editing.id).limit(1):await q.limit(1);
     if(conflict?.length){setError('Este profissional já possui atendimento neste horário.');return}
-    const{error}=await supabase.from('appointments').insert({company_id:activeCompany.id,patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type,notes:notes||null,status:'scheduled'});
-    if(error)setError(error.message);else{setOpen(false);load()}
+    const payload={patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type,notes:notes||null};
+    const result=editing?await supabase.from('appointments').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id):await supabase.from('appointments').insert({company_id:activeCompany.id,...payload,status:'scheduled'});
+    if(result.error)setError(result.error.message);else{setOpen(false);load()}
   }
-  async function changeStatus(id:string,status:string){if(!supabase)return;await supabase.from('appointments').update({status}).eq('id',id).eq('company_id',activeCompany?.id);load()}
+  async function changeStatus(id:string,status:string){if(!supabase||!activeCompany)return;const{error}=await supabase.from('appointments').update({status}).eq('id',id).eq('company_id',activeCompany.id);if(error)setError(error.message);else load()}
+  async function remove(id:string){if(!supabase||!activeCompany)return;const{error}=await supabase.from('appointments').update({status:'cancelled'}).eq('id',id).eq('company_id',activeCompany.id);if(error)setError(error.message);else load()}
   function shift(days:number){setToday(d=>{const n=new Date(d);n.setDate(n.getDate()+days);return n})}
-  return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo atendimento</button>}>
-    <section className="panel">
-      <div className="agenda-toolbar">
-        <button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button>
-        <button className="icon-btn" onClick={()=>shift(-1)} aria-label="Dia anterior"><ArrowLeft size={16}/></button>
-        <button className="icon-btn" onClick={()=>shift(1)} aria-label="Próximo dia"><ChevronRight size={16}/></button>
-        <h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</h2>
-      </div>
-      <div className="calendar-day">
-        {Array.from({length:12},(_,i)=>{const hour=8+i;const ap=dayItems.find(a=>new Date(a.starts_at).getHours()===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{ap?<div className="appointment-card"><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button><button className="back-link danger" onClick={()=>changeStatus(ap.id,'cancelled')}>Cancelar</button></span></div>:<button className="slot-add" onClick={()=>{setDate(dayKey);setTime(String(hour).padStart(2,'0')+':00');setOpen(true)}}>+</button>}</div></div>})}
-      </div>
+  return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={resetForm}><Plus size={16}/> Novo atendimento</button>}>
+    <section className="panel"><div className="agenda-toolbar"><button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button><button className="icon-btn" onClick={()=>shift(-1)}><ArrowLeft size={16}/></button><button className="icon-btn" onClick={()=>shift(1)}><ChevronRight size={16}/></button><h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</h2></div>
+      <div className="calendar-day">{Array.from({length:12},(_,i)=>{const hour=8+i;const ap=dayItems.find(a=>new Date(a.starts_at).getHours()===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{ap?<div className="appointment-card"><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>editAppointment(ap)}>Editar</button>{ap.status!=='confirmed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button>}<button className="back-link danger" onClick={()=>remove(ap.id)}>Cancelar</button></span></div>:<button className="slot-add" onClick={()=>{setDate(dayKey);setTime(String(hour).padStart(2,'0')+':00');setEditing(null);setError('');setOpen(true)}}>+</button>}</div></div>})}</div>
     </section>
-    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>Novo atendimento</h2><p>{new Date(date+'T12:00').toLocaleDateString('pt-BR')}</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid">
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>{editing?'Editar atendimento':'Novo atendimento'}</h2><p>{date&&new Date(date+'T12:00').toLocaleDateString('pt-BR')}</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid">
       <label>Paciente*<select required value={patient} onChange={e=>setPatient(e.target.value)}><option value="">Selecione</option>{patients.map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>
       <label>Profissional*<select required value={professional} onChange={e=>setProfessional(e.target.value)}><option value="">Selecione</option>{pros.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
-      <label>Data*<input required type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
-      <label>Hora*<input required type="time" value={time} onChange={e=>setTime(e.target.value)}/></label>
+      <label>Data*<input required type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Hora*<input required type="time" value={time} onChange={e=>setTime(e.target.value)}/></label>
       <label>Tipo<select value={type} onChange={e=>setType(e.target.value)}><option>Consulta</option><option>Retorno</option><option>Avaliação</option><option>Online</option></select></label>
       <label>Duração<select value={duration} onChange={e=>setDuration(e.target.value)}><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
-      <label className="full-field">Observações<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3}/></label>
-    </div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">Agendar</button></form></div>}
+      <label className="full-field">Observações<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3}/></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">{editing?'Salvar alterações':'Agendar'}</button></form></div>}
   </TenantPage>
 }function WhatsAppPage(){const{activeCompany}=useTenant();const[item,setItem]=useState<any>(null);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();setItem(data)}load()},[activeCompany?.id]);return <TenantPage title="WhatsApp" description="Número de WhatsApp da empresa e estado da integração."><section className="panel">{item?<div className="row"><MessageCircle size={20}/><span><b>{item.phone_number||'Número não informado'}</b><small>{item.instance_name||'Instância'} · {item.provider}</small></span><i>{item.status}</i></div>:<div className="empty-box"><MessageCircle size={35}/><h2>Nenhuma integração conectada</h2><p>O número pertence à empresa e poderá ser conectado à Evolution API.</p></div>}</section></TenantPage>}
 
