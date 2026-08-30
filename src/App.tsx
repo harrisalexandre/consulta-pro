@@ -372,38 +372,56 @@ function AgendaPage(){
   const[today,setToday]=useState(()=>new Date());
   const[items,setItems]=useState<any[]>([]); const[patients,setPatients]=useState<any[]>([]); const[pros,setPros]=useState<any[]>([]);
   const[open,setOpen]=useState(false); const[editing,setEditing]=useState<any>(null);
-  const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[error,setError]=useState('');
-  const dayKey=today.toISOString().slice(0,10);
-  const dayItems=useMemo(()=>items.filter(a=>new Date(a.starts_at).toISOString().slice(0,10)===dayKey),[items,dayKey]);
+  const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[status,setStatus]=useState('scheduled');const[error,setError]=useState('');const[loading,setLoading]=useState(true);
+  const localKey=(d:Date)=>{const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
+  const dayKey=localKey(today);
+  const dayItems=useMemo(()=>items.filter(a=>localKey(new Date(a.starts_at))===dayKey),[items,dayKey]);
+
   async function load(){
     if(!supabase||!activeCompany)return;
+    setLoading(true);setError('');
     const from=new Date(today);from.setHours(0,0,0,0);const to=new Date(from);to.setDate(to.getDate()+1);
     const[a,b,c]=await Promise.all([
       supabase.from('appointments').select('*,patients(full_name),professionals(name)').eq('company_id',activeCompany.id).gte('starts_at',from.toISOString()).lt('starts_at',to.toISOString()).order('starts_at'),
       supabase.from('patients').select('id,full_name').eq('company_id',activeCompany.id).eq('status','active').order('full_name'),
       supabase.from('professionals').select('id,name').eq('company_id',activeCompany.id).eq('status','active').order('name')
     ]);
-    setItems(a.data||[]);setPatients(b.data||[]);setPros(c.data||[]);
+    if(a.error)setError(a.error.message);else setItems(a.data||[]);
+    if(b.error)setError(b.error.message);else setPatients(b.data||[]);
+    if(c.error)setError(c.error.message);else setPros(c.data||[]);
+    setLoading(false);
   }
   useEffect(()=>{load()},[activeCompany?.id,dayKey]);
-  function resetForm(){setEditing(null);setDate(dayKey);setTime('09:00');setPatient('');setProfessional('');setDuration('60');setType('Consulta');setNotes('');setError('');setOpen(true)}
-  function editAppointment(a:any){setEditing(a);setDate(new Date(a.starts_at).toISOString().slice(0,10));setTime(new Date(a.starts_at).toTimeString().slice(0,5));setPatient(a.patient_id);setProfessional(a.professional_id);setDuration(String(Math.round((new Date(a.ends_at).getTime()-new Date(a.starts_at).getTime())/60000)));setType(a.appointment_type||'Consulta');setNotes(a.notes||'');setError('');setOpen(true)}
+
+  function resetForm(slot?:number){
+    setEditing(null);setDate(dayKey);setTime(slot===undefined?'09:00':String(slot).padStart(2,'0')+':00');
+    setPatient('');setProfessional('');setDuration('60');setType('Consulta');setNotes('');setStatus('scheduled');setError('');setOpen(true);
+  }
+  function editAppointment(a:any){
+    setEditing(a);const d=new Date(a.starts_at);setDate(localKey(d));setTime(d.toTimeString().slice(0,5));setPatient(a.patient_id);setProfessional(a.professional_id);
+    setDuration(String(Math.max(15,Math.round((new Date(a.ends_at).getTime()-d.getTime())/60000))));setType(a.appointment_type||'Consulta');setNotes(a.notes||'');setStatus(a.status||'scheduled');setError('');setOpen(true);
+  }
   async function save(e:React.FormEvent){
-    e.preventDefault();if(!supabase||!activeCompany)return;setError('');
+    e.preventDefault();if(!supabase||!activeCompany)return;
+    setError('');
+    if(!patient||!professional){setError('Selecione paciente e profissional.');return}
     const start=new Date(date+'T'+time);const end=new Date(start.getTime()+Number(duration)*60000);
     const q=supabase.from('appointments').select('id').eq('company_id',activeCompany.id).eq('professional_id',professional).neq('status','cancelled').lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString());
-    const{data:conflict}=editing?await q.neq('id',editing.id).limit(1):await q.limit(1);
+    const{data:conflict,error:conflictError}=editing?await q.neq('id',editing.id).limit(1):await q.limit(1);
+    if(conflictError){setError(conflictError.message);return}
     if(conflict?.length){setError('Este profissional já possui atendimento neste horário.');return}
-    const payload={patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type,notes:notes||null};
-    const result=editing?await supabase.from('appointments').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id):await supabase.from('appointments').insert({company_id:activeCompany.id,...payload,status:'scheduled'});
-    if(result.error)setError(result.error.message);else{setOpen(false);load()}
+    const payload={patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type,notes:notes||null,status};
+    const result=editing?await supabase.from('appointments').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id):await supabase.from('appointments').insert({company_id:activeCompany.id,...payload});
+    if(result.error)setError(result.error.message);else{setOpen(false);await load()}
   }
-  async function changeStatus(id:string,status:string){if(!supabase||!activeCompany)return;const{error}=await supabase.from('appointments').update({status}).eq('id',id).eq('company_id',activeCompany.id);if(error)setError(error.message);else load()}
-  async function remove(id:string){if(!supabase||!activeCompany)return;const{error}=await supabase.from('appointments').update({status:'cancelled'}).eq('id',id).eq('company_id',activeCompany.id);if(error)setError(error.message);else load()}
+  async function changeStatus(id:string,nextStatus:string){if(!supabase||!activeCompany)return;const{error}=await supabase.from('appointments').update({status:nextStatus}).eq('id',id).eq('company_id',activeCompany.id);if(error)setError(error.message);else await load()}
+  async function remove(id:string){await changeStatus(id,'cancelled')}
   function shift(days:number){setToday(d=>{const n=new Date(d);n.setDate(n.getDate()+days);return n})}
-  return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={resetForm}><Plus size={16}/> Novo atendimento</button>}>
-    <section className="panel"><div className="agenda-toolbar"><button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button><button className="icon-btn" onClick={()=>shift(-1)}><ArrowLeft size={16}/></button><button className="icon-btn" onClick={()=>shift(1)}><ChevronRight size={16}/></button><h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</h2></div>
-      <div className="calendar-day">{Array.from({length:12},(_,i)=>{const hour=8+i;const ap=dayItems.find(a=>new Date(a.starts_at).getHours()===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{ap?<div className="appointment-card"><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>editAppointment(ap)}>Editar</button>{ap.status!=='confirmed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button>}<button className="back-link danger" onClick={()=>remove(ap.id)}>Cancelar</button></span></div>:<button className="slot-add" onClick={()=>{setDate(dayKey);setTime(String(hour).padStart(2,'0')+':00');setEditing(null);setError('');setOpen(true)}}>+</button>}</div></div>})}</div>
+  return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={()=>resetForm()}><Plus size={16}/> Novo atendimento</button>}>
+    <section className="panel">
+      <div className="agenda-toolbar"><button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button><button className="icon-btn" onClick={()=>shift(-1)} title="Dia anterior"><ArrowLeft size={16}/></button><button className="icon-btn" onClick={()=>shift(1)} title="Próximo dia"><ChevronRight size={16}/></button><h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</h2></div>
+      {error&&<div className="form-error">{error}</div>}
+      {loading?<div className="empty-box">Carregando agenda...</div>:<div className="calendar-day">{Array.from({length:13},(_,i)=>{const hour=8+i;const aps=dayItems.filter(a=>new Date(a.starts_at).getHours()===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{aps.length?aps.map(ap=><div className="appointment-card" key={ap.id}><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>editAppointment(ap)}>Editar</button>{ap.status!=='confirmed'&&ap.status!=='completed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button>}{ap.status==='confirmed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'completed')}>Concluir</button>}{ap.status!=='cancelled'&&ap.status!=='completed'&&<button className="back-link danger" onClick={()=>remove(ap.id)}>Cancelar</button>}</span></div>):<button className="slot-add" onClick={()=>resetForm(hour)} aria-label={'Agendar às '+hour+':00'}>+</button>}</div></div>})}</div>}
     </section>
     {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>{editing?'Editar atendimento':'Novo atendimento'}</h2><p>{date&&new Date(date+'T12:00').toLocaleDateString('pt-BR')}</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid">
       <label>Paciente*<select required value={patient} onChange={e=>setPatient(e.target.value)}><option value="">Selecione</option>{patients.map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>
@@ -411,9 +429,11 @@ function AgendaPage(){
       <label>Data*<input required type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Hora*<input required type="time" value={time} onChange={e=>setTime(e.target.value)}/></label>
       <label>Tipo<select value={type} onChange={e=>setType(e.target.value)}><option>Consulta</option><option>Retorno</option><option>Avaliação</option><option>Online</option></select></label>
       <label>Duração<select value={duration} onChange={e=>setDuration(e.target.value)}><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
+      <label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="scheduled">Agendado</option><option value="confirmed">Confirmado</option><option value="completed">Realizado</option><option value="cancelled">Cancelado</option></select></label>
       <label className="full-field">Observações<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3}/></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">{editing?'Salvar alterações':'Agendar'}</button></form></div>}
   </TenantPage>
-}function WhatsAppPage(){
+}
+function WhatsAppPage(){
   const{activeCompany}=useTenant();
   const[item,setItem]=useState<any>(null);
   const[templates,setTemplates]=useState<any[]>([]);
