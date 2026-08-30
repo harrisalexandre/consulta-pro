@@ -377,94 +377,28 @@ function WhatsAppPage(){
 }
 function AutomationsPage(){
   const{activeCompany}=useTenant();
-  const[items,setItems]=useState<any[]>([]);
-  const[templates,setTemplates]=useState<any[]>([]);
-  const[open,setOpen]=useState(false);
-  const[editing,setEditing]=useState<any>(null);
-  const[name,setName]=useState('');
-  const[type,setType]=useState('appointment_reminder');
-  const[advance,setAdvance]=useState('1440');
-  const[channel,setChannel]=useState('whatsapp');
-  const[templateId,setTemplateId]=useState('');
-  const[enabled,setEnabled]=useState(true);
-  const[loading,setLoading]=useState(true);
-  const[saving,setSaving]=useState(false);
-  const[error,setError]=useState('');
-  const[success,setSuccess]=useState('');
-  const[deleting,setDeleting]=useState<any>(null);
-
-  async function load(){
-    if(!supabase||!activeCompany)return;
-    setLoading(true);setError('');
-    const[a,t]=await Promise.all([
-      supabase.from('automations').select('*').eq('company_id',activeCompany.id).order('name'),
-      supabase.from('message_templates').select('id,name,active').eq('company_id',activeCompany.id).order('name')
-    ]);
-    if(a.error)setError(a.error.message);
-    if(t.error)setError(t.error.message);
-    setItems(a.data||[]);setTemplates((t.data||[]).filter(x=>x.active));
-    setLoading(false);
-  }
+  const[items,setItems]=useState<any[]>([]);const[templates,setTemplates]=useState<any[]>([]);const[dispatches,setDispatches]=useState<any[]>([]);
+  const[open,setOpen]=useState(false);const[editing,setEditing]=useState<any>(null);const[deleting,setDeleting]=useState<any>(null);
+  const[name,setName]=useState('');const[type,setType]=useState('appointment_reminder');const[advance,setAdvance]=useState('1440');const[channel,setChannel]=useState('whatsapp');const[templateId,setTemplateId]=useState('');const[enabled,setEnabled]=useState(true);
+  const[loading,setLoading]=useState(true);const[saving,setSaving]=useState(false);const[error,setError]=useState('');const[success,setSuccess]=useState('');
+  async function load(){if(!supabase||!activeCompany)return;setLoading(true);setError('');const[a,t,d]=await Promise.all([
+    supabase.from('automations').select('*').eq('company_id',activeCompany.id).order('name'),
+    supabase.from('message_templates').select('id,name,active').eq('company_id',activeCompany.id).order('name'),
+    supabase.from('automation_dispatches').select('id,automation_id,appointment_id,recipient_number,status,scheduled_for,sent_at,error_message,created_at').eq('company_id',activeCompany.id).order('created_at',{ascending:false}).limit(50)
+  ]);if(a.error||t.error||d.error)setError(a.error?.message||t.error?.message||d.error?.message||'Não foi possível carregar as automações.');setItems(a.data||[]);setTemplates((t.data||[]).filter(x=>x.active));setDispatches(d.data||[]);setLoading(false)}
   useEffect(()=>{load()},[activeCompany?.id]);
-
-  function resetForm(){
-    setEditing(null);setName('');setType('appointment_reminder');setAdvance('1440');setChannel('whatsapp');
-    setTemplateId(templates[0]?.id || ''); setEnabled(true); setError(''); setSuccess(''); setOpen(true);
-  }
-  function edit(a:any){
-    setEditing(a);setName(a.name||'');setType(a.type||'appointment_reminder');setAdvance(String(a.advance_minutes??1440));
-    setChannel(a.channel||'whatsapp');
-    const match=templates.find(t=>t.name===a.message_template);
-    setTemplateId(match?.id||'');setEnabled(Boolean(a.enabled));setError('');setSuccess('');setOpen(true);
-  }
-  async function save(e:React.FormEvent){
-    e.preventDefault();
-    if(!supabase||!activeCompany)return;
-    const selected=templates.find(t=>t.id===templateId);
-    if(!name.trim()){setError('Informe um nome para a automação.');return}
-    if(channel==='whatsapp'&&!selected){setError('Selecione um template ativo para o WhatsApp.');return}
-    setSaving(true);setError('');setSuccess('');
-    const payload={
-      company_id:activeCompany.id,name:name.trim(),type,advance_minutes:Math.max(0,Number(advance)||0),
-      channel,message_template:selected?.name||'',enabled
-    };
-    const result=editing
-      ?await supabase.from('automations').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id)
-      :await supabase.from('automations').insert(payload);
-    if(result.error)setError(result.error.message);
-    else{setSuccess(editing?'Automação atualizada.':'Automação criada.');setOpen(false);await load()}
-    setSaving(false);
-  }
-  async function remove(a:any){
-    if(!supabase||!activeCompany||!deleting)return;
-    const{error}=await supabase.from('automations').delete().eq('id',deleting.id).eq('company_id',activeCompany.id);
-    if(error)setError(error.message);else{setDeleting(null);setSuccess('Automação excluída.');await load()}
-  }
-  async function toggle(a:any){
-    if(!supabase||!activeCompany)return;
-    const{error}=await supabase.from('automations').update({enabled:!a.enabled}).eq('id',a.id).eq('company_id',activeCompany.id);
-    if(error)setError(error.message);else load();
-  }
-
-  return <TenantPage title="Automações" description="Regras que executam lembretes e mensagens automaticamente." action={<button className="hero-btn" onClick={resetForm}><Plus size={16}/> Nova automação</button>}>
-    <section className="panel">
-      {error&&<div className="form-error">{error}</div>}{success&&<div className="form-success">{success}</div>}
-      {loading?<div className="empty-box">Carregando automações...</div>:items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie uma regra para enviar uma mensagem antes do atendimento.</p><button className="hero-btn" onClick={resetForm}><Plus size={16}/> Criar automação</button></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes>=1440?Math.round(a.advance_minutes/1440)+' dia(s)':a.advance_minutes>=60?Math.round(a.advance_minutes/60)+' hora(s)':a.advance_minutes+' min'} antes · {a.channel} · {a.message_template||'Sem template'}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i><button className="back-link" onClick={()=>edit(a)}>Editar</button><button className="back-link" onClick={()=>toggle(a)}>{a.enabled?'Desativar':'Ativar'}</button></div>)}
-    </section>
-    {deleting&&<div className="modal-backdrop"><div className="modal panel"><h2>Excluir automação?</h2><p>Essa ação não pode ser desfeita.</p><div><button className="hero-btn" onClick={remove}>Excluir</button> <button className="back-link" onClick={()=>setDeleting(null)}>Cancelar</button></div></div></div>}
-    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}>
-      <div className="head"><div><h2>{editing?'Editar automação':'Nova automação'}</h2><p>Defina quando e qual mensagem será usada.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div>
-      <div className="form-grid">
-        <label>Nome*<input required value={name} onChange={e=>setName(e.target.value)} placeholder="Lembrete de consulta"/></label>
-        <label>Gatilho<select value={type} onChange={e=>setType(e.target.value)}><option value="appointment_reminder">Lembrete de consulta</option><option value="appointment_confirmation">Confirmação de consulta</option><option value="appointment_followup">Pós-consulta</option></select></label>
-        <label>Antecedência<select value={advance} onChange={e=>setAdvance(e.target.value)}><option value="60">1 hora antes</option><option value="120">2 horas antes</option><option value="1440">1 dia antes</option><option value="2880">2 dias antes</option><option value="10080">7 dias antes</option></select></label>
-        <label>Canal<select value={channel} onChange={e=>setChannel(e.target.value)}><option value="whatsapp">WhatsApp</option><option value="manual">Manual</option></select></label>
-        <label>Mensagem padrão<select value={templateId} onChange={e=>setTemplateId(e.target.value)} disabled={channel!=='whatsapp'}><option value="">Selecione um template</option>{templates.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label>
-        <label>Status<select value={enabled?'active':'inactive'} onChange={e=>setEnabled(e.target.value==='active')}><option value="active">Ativa</option><option value="inactive">Inativa</option></select></label>
-      </div>
-      {channel==='whatsapp'&&templates.length===0&&<div className="form-error">Nenhum template ativo. Crie uma mensagem padrão em WhatsApp antes de ativar esta automação.</div>}
-      <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':editing?'Salvar alterações':'Criar automação'} <CheckCircle2 size={16}/></button> <button type="button" className="back-link" onClick={()=>setOpen(false)}>Cancelar</button></div>
-    </form></div>}
+  function resetForm(){setEditing(null);setName('');setType('appointment_reminder');setAdvance('1440');setChannel('whatsapp');setTemplateId(templates[0]?.id||'');setEnabled(true);setError('');setSuccess('');setOpen(true)}
+  function edit(a:any){setEditing(a);setName(a.name||'');setType(a.type||'appointment_reminder');setAdvance(String(a.advance_minutes??1440));setChannel(a.channel||'whatsapp');const m=templates.find(t=>t.name===a.message_template);setTemplateId(m?.id||'');setEnabled(Boolean(a.enabled));setError('');setSuccess('');setOpen(true)}
+  async function save(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;const selected=templates.find(t=>t.id===templateId);if(!name.trim()){setError('Informe um nome para a automação.');return}if(channel==='whatsapp'&&!selected){setError('Selecione um template ativo para o WhatsApp.');return}setSaving(true);setError('');const payload={company_id:activeCompany.id,name:name.trim(),type,advance_minutes:Math.max(0,Number(advance)||0),channel,message_template:selected?.name||'',enabled};const result=editing?await supabase.from('automations').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id):await supabase.from('automations').insert(payload);if(result.error)setError(result.error.message);else{setSuccess(editing?'Automação atualizada.':'Automação criada.');setOpen(false);await load()}setSaving(false)}
+  async function remove(){if(!supabase||!activeCompany||!deleting)return;const{error}=await supabase.from('automations').delete().eq('id',deleting.id).eq('company_id',activeCompany.id);if(error)setError(error.message);else{setDeleting(null);setSuccess('Automação excluída.');await load()}}
+  async function toggle(a:any){if(!supabase||!activeCompany)return;const{error}=await supabase.from('automations').update({enabled:!a.enabled}).eq('id',a.id).eq('company_id',activeCompany.id);if(error)setError(error.message);else await load()}
+  const pending=dispatches.filter(d=>d.status==='pending'||d.status==='scheduled').length;const sent=dispatches.filter(d=>d.status==='sent'||d.status==='completed').length;const failed=dispatches.filter(d=>d.status==='failed'||d.status==='error').length;
+  return <TenantPage title="Automações" description="Regras de lembretes e mensagens automáticas." action={<button className="hero-btn" onClick={resetForm}><Plus size={16}/> Nova automação</button>}>
+    <div className="metrics"><Metric label="Ativas" value={items.filter(a=>a.enabled).length} icon={Bot}/><Metric label="Pendentes" value={pending} icon={Activity}/><Metric label="Enviadas" value={sent} icon={CheckCircle2}/><Metric label="Falhas" value={failed} icon={CircleAlert}/></div>
+    <section className="panel">{error&&<div className="form-error">{error}</div>}{success&&<div className="form-success">{success}</div>}{loading?<div className="empty-box">Carregando automações...</div>:items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie uma regra para lembretes de consulta.</p><button className="hero-btn" onClick={resetForm}><Plus size={16}/> Criar automação</button></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes>=1440?Math.round(a.advance_minutes/1440)+' dia(s)':a.advance_minutes>=60?Math.round(a.advance_minutes/60)+' hora(s)':a.advance_minutes+' min'} antes · {a.channel} · {a.message_template||'Sem template'}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i><button className="back-link" onClick={()=>edit(a)}>Editar</button><button className="back-link" onClick={()=>toggle(a)}>{a.enabled?'Desativar':'Ativar'}</button><button className="back-link" onClick={()=>setDeleting(a)}>Excluir</button></div>)}</section>
+    <section className="panel"><div className="head"><div><h2>Histórico de disparos</h2><p>Últimos eventos registrados pelas automações.</p></div></div>{dispatches.length===0?<div className="empty-box"><Activity size={30}/><p>Nenhum disparo registrado ainda.</p></div>:dispatches.map(d=><div className="row" key={d.id}><Activity size={17}/><span><b>{d.recipient_number||'Número não informado'}</b><small>Agendado: {d.scheduled_for?new Date(d.scheduled_for).toLocaleString('pt-BR'):'—'}{d.sent_at?' · Enviado: '+new Date(d.sent_at).toLocaleString('pt-BR'):''}{d.error_message?' · '+d.error_message:''}</small></span><i>{d.status}</i></div>)}</section>
+    {deleting&&<div className="modal-backdrop"><div className="modal panel"><h2>Excluir automação?</h2><p>O registro da regra será removido. O histórico de disparos não será apagado.</p><button className="hero-btn" onClick={remove}>Excluir</button> <button className="back-link" onClick={()=>setDeleting(null)}>Cancelar</button></div></div>}
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>{editing?'Editar automação':'Nova automação'}</h2><p>Defina quando e qual mensagem será usada.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid"><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)} placeholder="Lembrete de consulta"/></label><label>Gatilho<select value={type} onChange={e=>setType(e.target.value)}><option value="appointment_reminder">Lembrete de consulta</option><option value="appointment_confirmation">Confirmação de consulta</option><option value="appointment_followup">Pós-consulta</option></select></label><label>Antecedência<select value={advance} onChange={e=>setAdvance(e.target.value)}><option value="60">1 hora antes</option><option value="120">2 horas antes</option><option value="1440">1 dia antes</option><option value="2880">2 dias antes</option><option value="10080">7 dias antes</option></select></label><label>Canal<select value={channel} onChange={e=>setChannel(e.target.value)}><option value="whatsapp">WhatsApp</option><option value="manual">Manual</option></select></label><label>Mensagem padrão<select value={templateId} onChange={e=>setTemplateId(e.target.value)} disabled={channel!=='whatsapp'}><option value="">Selecione um template</option>{templates.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></label><label>Status<select value={enabled?'active':'inactive'} onChange={e=>setEnabled(e.target.value==='active')}><option value="active">Ativa</option><option value="inactive">Inativa</option></select></label></div>{channel==='whatsapp'&&templates.length===0&&<div className="form-error">Nenhum template ativo. Crie uma mensagem padrão em WhatsApp antes de ativar esta automação.</div>}<div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':editing?'Salvar alterações':'Criar automação'} <CheckCircle2 size={16}/></button> <button type="button" className="back-link" onClick={()=>setOpen(false)}>Cancelar</button></div></form></div>}
   </TenantPage>
 }
 function TenantLayout(){
