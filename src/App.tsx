@@ -413,7 +413,64 @@ function AgendaPage(){
       <label>Duração<select value={duration} onChange={e=>setDuration(e.target.value)}><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
       <label className="full-field">Observações<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3}/></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">{editing?'Salvar alterações':'Agendar'}</button></form></div>}
   </TenantPage>
-}function WhatsAppPage(){const{activeCompany}=useTenant();const[item,setItem]=useState<any>(null);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();setItem(data)}load()},[activeCompany?.id]);return <TenantPage title="WhatsApp" description="Número de WhatsApp da empresa e estado da integração."><section className="panel">{item?<div className="row"><MessageCircle size={20}/><span><b>{item.phone_number||'Número não informado'}</b><small>{item.instance_name||'Instância'} · {item.provider}</small></span><i>{item.status}</i></div>:<div className="empty-box"><MessageCircle size={35}/><h2>Nenhuma integração conectada</h2><p>O número pertence à empresa e poderá ser conectado à Evolution API.</p></div>}</section></TenantPage>}
+}function WhatsAppPage(){
+  const{activeCompany}=useTenant();
+  const[item,setItem]=useState<any>(null);
+  const[loading,setLoading]=useState(true);
+  const[saving,setSaving]=useState(false);
+  const[provider,setProvider]=useState('evolution');
+  const[instance,setInstance]=useState('');
+  const[phone,setPhone]=useState('');
+  const[status,setStatus]=useState('disconnected');
+  const[error,setError]=useState('');
+  const[success,setSuccess]=useState('');
+
+  async function load(){
+    if(!supabase||!activeCompany)return;
+    setLoading(true);setError('');
+    const{data,error}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();
+    if(error){setError(error.message);setLoading(false);return}
+    setItem(data||null);
+    setProvider(data?.provider||'evolution');
+    setInstance(data?.instance_name||'');
+    setPhone(data?.phone_number||'');
+    setStatus(data?.status||'disconnected');
+    setLoading(false);
+  }
+  useEffect(()=>{load()},[activeCompany?.id]);
+
+  async function save(e:React.FormEvent){
+    e.preventDefault();
+    if(!supabase||!activeCompany)return;
+    setSaving(true);setError('');setSuccess('');
+    const payload={company_id:activeCompany.id,provider:provider.trim()||'evolution',instance_name:instance.trim()||null,phone_number:phone.trim()||null,status};
+    const result=item
+      ? await supabase.from('whatsapp_integrations').update(payload).eq('id',item.id).eq('company_id',activeCompany.id)
+      : await supabase.from('whatsapp_integrations').insert(payload);
+    if(result.error)setError(result.error.message);
+    else{setSuccess('Configuração do WhatsApp salva.');await load()}
+    setSaving(false);
+  }
+
+  return <TenantPage title="WhatsApp" description="Configure o número e a integração de WhatsApp deste consultório.">
+    <section className="panel">
+      <div className="head"><div><h2>Integração</h2><p>Os dados ficam vinculados exclusivamente à empresa ativa.</p></div><i>{status==='connected'?'Conectado':status==='pending'?'Aguardando':'Desconectado'}</i></div>
+      {loading?<div className="empty-box">Carregando configuração...</div>:<form className="form-grid" onSubmit={save}>
+        <label>Provedor<select value={provider} onChange={e=>setProvider(e.target.value)}><option value="evolution">Evolution API</option><option value="other">Outro provedor</option></select></label>
+        <label>Nome da instância<input value={instance} onChange={e=>setInstance(e.target.value)} placeholder="consultorio-01"/></label>
+        <label>Número do WhatsApp<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+55 11 99999-9999"/></label>
+        <label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="disconnected">Desconectado</option><option value="pending">Aguardando conexão</option><option value="connected">Conectado</option></select></label>
+        {error&&<div className="form-error">{error}</div>}
+        {success&&<div className="form-success">{success}</div>}
+        <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar configuração'} <CheckCircle2 size={16}/></button></div>
+      </form>}
+    </section>
+    <section className="panel">
+      <h2>Próximo passo</h2>
+      <p>Depois de configurar a instância, a integração com a Evolution API poderá usar este vínculo para receber e enviar mensagens.</p>
+    </section>
+  </TenantPage>
+}
 
 function AutomationsPage(){const{activeCompany}=useTenant();const[items,setItems]=useState<any[]>([]);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('automations').select('*').eq('company_id',activeCompany.id).order('name');setItems(data||[])}load()},[activeCompany?.id]);return <TenantPage title="Automações" description="Regras que executam lembretes e mensagens automaticamente." action={<button className="hero-btn"><Plus size={16}/> Nova automação</button>}><section className="panel">{items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie o lembrete de consulta de 24 horas quando o WhatsApp estiver conectado.</p></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes} min antes · {a.channel}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i></div>)}</section></TenantPage>}
 
