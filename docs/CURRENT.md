@@ -2,7 +2,7 @@
 
 ## Onde estamos
 **Etapa 8/13 — Integrações, automações e WhatsApp**  
-**Status: correção do SessionGate publicada; validação do Render pendente**
+**Status: auditoria fina em andamento; código atual corrigido, Render ainda serve versão incompatível**
 
 ### Concluído
 - Scheduler/pg_cron.
@@ -16,7 +16,7 @@
 - Tela WhatsApp com conexão, QR, status e reconexão.
 - Templates e histórico preparados.
 - Correção de narrowing nullable do Supabase no `SessionGate` no commit `a8bab0a3cb119b18a9715bb6e054c15ac37b0e7b`.
-- `main` avançou para `f4404f5349c2736c1b397858fe55a88ed1a472fe` com atualização da documentação.
+- `main` está atualmente em `5b5b84a3246f9cc065ca54228465b45d2a61aa14`.
 
 ### Situação atual
 - `src/App.tsx` no `main` contém o narrowing explícito de `client` dentro de `SessionGate`, eliminando a causa conhecida de `TS18047: 'client' is possibly 'null'`.
@@ -84,3 +84,18 @@ Não considerar a etapa concluída apenas porque compila; validar o fluxo real.
 - O RoleGate agora trata erros e possui timeout de 8s, evitando ficar indefinidamente em “Carregando acesso...”.
 - Commits: `3f61f84b031d78ddd1a289fb8fa194456104865d` e `b63d7e741b7f065d13a5e2ab18c505ba3f49fe62`.
 - **Próximo:** validar o novo deploy do Render abrindo `/` diretamente. A landing não depende mais do Supabase para montar.
+
+
+### Auditoria fina — 30/08/2026
+- O código atual da rota `/` é público e retorna `<Landing/>` diretamente, antes de `SessionGate`, `RoleGate`, `TenantProvider` ou qualquer chamada Supabase.
+- Portanto, se `/` continua exibindo **“Carregando acesso...”**, o navegador/Render não está executando o bundle correspondente ao `main` atual. Essa tela existe somente em `RoleGate`, que não participa da rota pública atual.
+- Auditoria encontrou um segundo problema estrutural: `TenantProvider` estava sendo usado como `Route element` sem renderizar `<Outlet/>`; corrigido no commit `5b5b84a3246f9cc065ca54228465b45d2a61aa14`.
+- A árvore atual também mostra que as rotas de operação listadas na navegação (`/dashboard`, `/agenda`, `/pacientes`, `/profissionais`, `/whatsapp`, `/automacoes`, `/configuracoes`) não estão declaradas no `App.tsx` atual. Não criar telas novas nesta auditoria; registrar como lacuna funcional para o próximo bloco.
+- `public/_redirects` não é configuração de rewrite do Render; o README exige rewrite `/* -> /index.html` no serviço. Isso afeta acesso direto às rotas SPA, mas não explica a tela de “Carregando acesso...” na raiz.
+- Não foi possível consultar o serviço Render diretamente deste ambiente: DNS/rede externa está indisponível. A validação da versão publicada precisa ser feita no próprio serviço Render.
+
+### Próximo passo obrigatório
+1. Confirmar no Render: repositório `harrisalexandre/consulta-pro`, branch `main`, root directory correto, build `npm install && npm run build`, publish `dist` e último deploy apontando para `5b5b84a3246f9cc065ca54228465b45d2a61aa14`.
+2. Se o deploy estiver em outro commit/branch, corrigir o deploy antes de qualquer nova alteração de React.
+3. Se o deploy estiver exatamente nesse commit e ainda mostrar “Carregando acesso...” em `/`, investigar cache/serviço errado, porque o código atual torna esse estado impossível na rota raiz.
+4. Depois disso, validar build e somente então iniciar a auditoria funcional das rotas existentes.
