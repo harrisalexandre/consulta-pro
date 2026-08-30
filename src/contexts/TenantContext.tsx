@@ -50,7 +50,9 @@ export function TenantProvider({children}:{children:ReactNode}){
   useEffect(()=>{
     refresh()
     if(!supabase)return
-    const{data}=supabase.auth.onAuthStateChange(()=>refresh())
+    const{data}=supabase.auth.onAuthStateChange(()=>{
+      setTimeout(()=>{ refresh() },0)
+    })
     return()=>data.subscription.unsubscribe()
   },[])
 
