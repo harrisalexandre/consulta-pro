@@ -10,7 +10,7 @@ import { useTenant } from './contexts/TenantContext'
 import Landing from './Landing'
 
 type Company = { id: string; name: string; legal_name?: string | null; cnpj?: string | null; phone?: string | null; email?: string | null }
-type Icon = React.ElementType
+type Icon = React.ComponentType<any>
 
 const tenantNav: [string, string, Icon][] = [
   ['/dashboard', 'Dashboard', LayoutDashboard],
