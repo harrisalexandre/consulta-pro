@@ -43,7 +43,7 @@ O desenvolvimento segue por fases e uma fase só é considerada concluída quand
 2. Superadmin: dashboard global, empresas, usuários e permissões.
 3. Onboarding: configuração do consultório e primeiro Owner.
 4. Operação: profissionais, pacientes e agenda com CRUD real. **Base atual:** pacientes e profissionais possuem criação, edição, status e busca; agenda possui criação, edição, confirmação e cancelamento.
-5. Comunicação: WhatsApp, templates e histórico de mensagens. **Próxima etapa:** tornar a tela de WhatsApp configurável e implementar templates/histórico reais.
+5. Comunicação: WhatsApp, templates e histórico de mensagens. **Base atual:** configuração do WhatsApp, CRUD de templates e leitura do histórico já persistem no Supabase por tenant.
 6. Automações: gatilhos, regras, execução e histórico.
 7. Qualidade: loading, empty/error states, responsividade e acesso direto às rotas.
 8. Segurança: revisão de RLS, autorização e isolamento entre tenants.
@@ -61,4 +61,4 @@ Antes de criar uma tela ou rota, verificar se ela já existe. Não considerar um
 - Pacientes: listar, buscar, criar, editar e ativar/inativar.
 - Profissionais: listar, buscar, criar, editar e ativar/inativar.
 - Agenda: calendário diário, criação, edição, confirmação e cancelamento.
-- WhatsApp e Automações ainda possuem partes de interface que precisam de implementação funcional.
+- WhatsApp: configuração por tenant, templates de mensagens e histórico das últimas mensagens registrados no Supabase.\n- Automações: CRUD e execução ainda serão aprofundados na próxima fase.
