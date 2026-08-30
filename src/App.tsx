@@ -127,6 +127,13 @@ function CompanyDetail(){
   const[userBusy,setUserBusy]=useState(false);
   const[userError,setUserError]=useState('');
   const[userSuccess,setUserSuccess]=useState('');
+  const[editing,setEditing]=useState<any>(null);
+  const[editName,setEditName]=useState('');
+  const[editRole,setEditRole]=useState<'owner'|'admin'>('owner');
+  const[editStatus,setEditStatus]=useState<'active'|'inactive'>('active');
+  const[resetPassword,setResetPassword]=useState('');
+  const[showPassword,setShowPassword]=useState(false);
+  const[editBusy,setEditBusy]=useState(false);
 
   async function loadUsers(){
     if(!supabase||!id)return;
@@ -164,6 +171,9 @@ function CompanyDetail(){
     }
     setUserBusy(false);
   }
+
+  function startEdit(u:any){setEditing(u);setEditName(u.profiles?.full_name||'');setEditRole(u.role==='admin'?'admin':'owner');setEditStatus(u.status==='inactive'?'inactive':'active');setResetPassword('');setShowPassword(false);setUserError('');}
+  async function saveEdit(e:React.FormEvent){e.preventDefault();if(!supabase||!id||!editing)return;setEditBusy(true);setUserError('');setUserSuccess('');const body:any={user_id:editing.user_id,company_id:id,full_name:editName,role:editRole,status:editStatus};if(resetPassword)body.password=resetPassword;const{data,error}=await supabase.functions.invoke('superadmin-update-company-user',{body});if(error)setUserError(error.message||'Não foi possível atualizar o usuário.');else if(data?.error)setUserError(data.error);else{setUserSuccess('Usuário atualizado com sucesso.');setEditing(null);await loadUsers()}setEditBusy(false)}
 
   if(!c)return <div className="content"><section className="panel"><CircleAlert size={30}/><h2>Empresa não encontrada</h2><button className="hero-btn" onClick={()=>navigate('/admin/empresas')}>Voltar</button></section></div>;
 
@@ -214,7 +224,8 @@ function CompanyDetail(){
 
     <section className="panel">
       <h2>Usuários vinculados</h2>
-      {users.length===0?<div className="empty-box"><Users size={30}/><p>Nenhum usuário possui acesso a esta empresa.</p></div>:users.map(u=><div className="row" key={u.user_id}><UserRound size={18}/><span><b>{u.profiles?.full_name||'Usuário'}</b><small>{u.role==='owner'?'Owner':'Admin'} · criado em {new Date(u.created_at).toLocaleDateString('pt-BR')}</small></span><i>{u.status}</i></div>)}
+      {users.length===0?<div className="empty-box"><Users size={30}/><p>Nenhum usuário possui acesso a esta empresa.</p></div>:users.map(u=><div className="row" key={u.user_id}><UserRound size={18}/><span><b>{u.profiles?.full_name||'Usuário'}</b><small>{u.role==='owner'?'Owner':'Admin'} · criado em {new Date(u.created_at).toLocaleDateString('pt-BR')}</small></span><i>{u.status}</i><button className="back-link" onClick={()=>startEdit(u)}>Editar</button></div>)}
+      {editing&&<div className="modal-backdrop"><form className="modal panel" onSubmit={saveEdit}><div className="head"><div><h2>Editar acesso</h2><p>{editing.profiles?.full_name||'Usuário'}</p></div><button type="button" className="icon-btn" onClick={()=>setEditing(null)}><XCircle size={18}/></button></div><div className="form-grid"><label>Nome completo*<input required value={editName} onChange={e=>setEditName(e.target.value)}/></label><label>Perfil<select value={editRole} onChange={e=>setEditRole(e.target.value as 'owner'|'admin')}><option value="owner">Owner — acesso total</option><option value="admin">Admin — gestão da empresa</option></select></label><label>Status<select value={editStatus} onChange={e=>setEditStatus(e.target.value as 'active'|'inactive')}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label><label>Nova senha (opcional)<div className="password-wrap"><input minLength={8} type={showPassword?'text':'password'} value={resetPassword} onChange={e=>setResetPassword(e.target.value)} placeholder="Mínimo de 8 caracteres"/><button type="button" className="icon-btn" title={showPassword?'Ocultar senha':'Mostrar senha'} onClick={()=>setShowPassword(v=>!v)}>{showPassword?<XCircle size={17}/>:<UserRound size={17}/>}</button></div></label></div>{userError&&<div className="form-error">{userError}</div>}<button className="hero-btn" disabled={editBusy}>{editBusy?'Salvando...':'Salvar alterações'}</button></form></div>}
     </section>
   </div>
 }
