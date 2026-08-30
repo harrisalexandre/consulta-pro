@@ -516,6 +516,7 @@ function AutomationsPage(){
   const[saving,setSaving]=useState(false);
   const[error,setError]=useState('');
   const[success,setSuccess]=useState('');
+  const[deleting,setDeleting]=useState<any>(null);
 
   async function load(){
     if(!supabase||!activeCompany)return;
@@ -559,6 +560,11 @@ function AutomationsPage(){
     else{setSuccess(editing?'Automação atualizada.':'Automação criada.');setOpen(false);await load()}
     setSaving(false);
   }
+  async function remove(a:any){
+    if(!supabase||!activeCompany||!deleting)return;
+    const{error}=await supabase.from('automations').delete().eq('id',deleting.id).eq('company_id',activeCompany.id);
+    if(error)setError(error.message);else{setDeleting(null);setSuccess('Automação excluída.');await load()}
+  }
   async function toggle(a:any){
     if(!supabase||!activeCompany)return;
     const{error}=await supabase.from('automations').update({enabled:!a.enabled}).eq('id',a.id).eq('company_id',activeCompany.id);
@@ -570,6 +576,7 @@ function AutomationsPage(){
       {error&&<div className="form-error">{error}</div>}{success&&<div className="form-success">{success}</div>}
       {loading?<div className="empty-box">Carregando automações...</div>:items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie uma regra para enviar uma mensagem antes do atendimento.</p><button className="hero-btn" onClick={resetForm}><Plus size={16}/> Criar automação</button></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes>=1440?Math.round(a.advance_minutes/1440)+' dia(s)':a.advance_minutes>=60?Math.round(a.advance_minutes/60)+' hora(s)':a.advance_minutes+' min'} antes · {a.channel} · {a.message_template||'Sem template'}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i><button className="back-link" onClick={()=>edit(a)}>Editar</button><button className="back-link" onClick={()=>toggle(a)}>{a.enabled?'Desativar':'Ativar'}</button></div>)}
     </section>
+    {deleting&&<div className="modal-backdrop"><div className="modal panel"><h2>Excluir automação?</h2><p>Essa ação não pode ser desfeita.</p><div><button className="hero-btn" onClick={remove}>Excluir</button> <button className="back-link" onClick={()=>setDeleting(null)}>Cancelar</button></div></div></div>}
     {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}>
       <div className="head"><div><h2>{editing?'Editar automação':'Nova automação'}</h2><p>Defina quando e qual mensagem será usada.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div>
       <div className="form-grid">
