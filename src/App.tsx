@@ -427,7 +427,7 @@ function AgendaPage(){
   const[name,setName]=useState('');
   const[category,setCategory]=useState('lembrete');
   const[body,setBody]=useState('');
-  const[editingTemplate,setEditingTemplate]=useState<any>(null);
+  const[editingTemplate,setEditingTemplate]=useState<any>(null);\n  const[templateForm,setTemplateForm]=useState(false);
   const[error,setError]=useState('');
   const[success,setSuccess]=useState('');
 
@@ -462,7 +462,7 @@ function AgendaPage(){
     setSaving(true);setError('');setSuccess('');
     const payload={company_id:activeCompany.id,name:name.trim(),category,body:body.trim(),active:true};
     const result=editingTemplate?await supabase.from('message_templates').update(payload).eq('id',editingTemplate.id).eq('company_id',activeCompany.id):await supabase.from('message_templates').insert(payload);
-    if(result.error)setError(result.error.message);else{setSuccess('Template salvo com sucesso.');newTemplate();await load()}setSaving(false);
+    if(result.error)setError(result.error.message);else{setSuccess('Template salvo com sucesso.');closeTemplate();await load()}setSaving(false);
   }
   async function toggleTemplate(t:any){
     if(!supabase||!activeCompany)return;
@@ -485,7 +485,7 @@ function AgendaPage(){
     <section className="panel">
       <div className="head"><div><h2>Mensagens padrão</h2><p>Templates reutilizáveis para lembretes e comunicação.</p></div><button className="hero-btn" onClick={newTemplate}><Plus size={16}/> Novo template</button></div>
       {templates.length===0?<div className="empty-box"><MessageCircle size={30}/><h2>Nenhum template</h2><p>Crie sua primeira mensagem padrão.</p></div>:templates.map(t=><div className="row" key={t.id}><MessageCircle size={18}/><span><b>{t.name}</b><small>{t.category} · {t.body}</small></span><i>{t.active?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>editTemplate(t)}>Editar</button><button className="back-link" onClick={()=>toggleTemplate(t)}>{t.active?'Desativar':'Ativar'}</button></div>)}
-      {(editingTemplate||name||body)&&<form className="form-grid" onSubmit={saveTemplate}>
+      {templateForm&&<form className="form-grid" onSubmit={saveTemplate}>
         <label>Nome*<input required value={name} onChange={e=>setName(e.target.value)} placeholder="Lembrete de consulta"/></label>
         <label>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="lembrete">Lembrete</option><option value="confirmacao">Confirmação</option><option value="pos_consulta">Pós-consulta</option><option value="geral">Geral</option></select></label>
         <label className="full-field">Mensagem*<textarea required rows={5} value={body} onChange={e=>setBody(e.target.value)} placeholder="Olá {{paciente}}, sua consulta está marcada para {{data}} às {{hora}}."/></label>
