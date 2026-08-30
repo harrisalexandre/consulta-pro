@@ -51,12 +51,21 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 - Corrigido o fluxo de abertura/fechamento do formulário de template.
 - **Importante:** esta etapa não inventa nem implementa um endpoint de envio real; a integração de transporte deve ser validada contra a Edge Function/infra existente.
 
-## 5. Onde está o desenvolvimento agora
+## 5. Atividade desta etapa — Automações
+- Tela de automações revisada e conectada às tabelas existentes.
+- CRUD da regra: criar, editar, ativar/desativar e excluir.
+- Validação de template ativo para canal WhatsApp.
+- Resumo de automações ativas e disparos por status.
+- Histórico dos últimos 50 registros de `automation_dispatches`.
+- Estados de carregamento, erro e vazio tratados.
+- **Pendente:** não existe Edge Function de execução listada atualmente no projeto Supabase; portanto esta etapa não afirma que os disparos estão sendo executados automaticamente.
+
+## 6. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
 
-## 6. Próximas etapas
+## 7. Próximas etapas
 1. **WhatsApp real:** revisar conexão, templates, histórico, estados e preparar/validar envio pela integração existente.
 2. **Automações:** validar execução real, histórico de disparos, deduplicação, retries e associação com agendamentos.
 3. **Configurações:** transformar a tela em configuração real da empresa, não placeholder.
@@ -68,7 +77,7 @@ A base visual e os CRUDs principais existem, mas ainda precisam de revisão sist
 9. **E2E:** executar os fluxos principais com usuário Superadmin e usuário de empresa.
 10. **README/deploy:** alinhar documentação final ao estado real.
 
-## 7. Pendências conhecidas
+## 8. Pendências conhecidas
 - Nem todos os módulos possuem profundidade funcional equivalente.
 - Algumas telas administrativas ainda são placeholders.
 - Execução real de automações/WhatsApp precisa ser validada além do CRUD.
