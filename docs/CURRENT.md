@@ -2,7 +2,7 @@
 
 ## Onde estamos
 **Etapa 8/13 — Integrações, automações e WhatsApp**  
-**Status: build TypeScript validado estaticamente; validação E2E pendente**
+**Status: correção do SessionGate publicada; validação do Render pendente**
 
 ### Concluído
 - Scheduler/pg_cron.
@@ -31,11 +31,14 @@
 - A API Supabase não pôde ser consultada porque o identificador de projeto exigido pela ferramenta não está disponível neste contexto.
 
 ### Correções
-- Nenhuma alteração de código foi necessária neste ciclo.
+- Corrigido o travamento em “Carregando acesso...” no `SessionGate`.
+- Causa: `onAuthStateChange` chamava `getSession()` dentro do próprio callback, criando potencial deadlock no fluxo de autenticação.
+- O callback agora usa diretamente a sessão recebida pelo evento; `getSession()` fica apenas na inicialização.
+- Commit: `9016c93f8bc559e9e1935e8328c343a6f4bd6264`.
 - `docs/CURRENT.md` atualizado para registrar a validação e as limitações reais do ambiente.
 
 ### Próximo passo
-Executar `npm run build` em ambiente com rede/dependências disponíveis ou aguardar o novo deploy no Render. Se o build ficar verde, iniciar a auditoria funcional completa e o teste ponta a ponta. Não considerar a Etapa 8 concluída antes da validação real de WhatsApp/WAHA e automações.
+Aguardar/validar o novo deploy no Render e recarregar `https://consulta-pro.onrender.com/`. Se o acesso avançar, executar `npm run build`/validação do deploy e então iniciar a auditoria funcional completa. Se o build ficar verde, iniciar a auditoria funcional completa e o teste ponta a ponta. Não considerar a Etapa 8 concluída antes da validação real de WhatsApp/WAHA e automações.
 
 ### Pendência WAHA
 Ainda dependem de configuração real no ambiente:
