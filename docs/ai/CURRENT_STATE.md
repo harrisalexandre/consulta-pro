@@ -43,12 +43,20 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 
 `AGENTS.md` define o protocolo de trabalho dos agentes.
 
-## 4. Onde está o desenvolvimento agora
+## 4. Atividade desta etapa — WhatsApp
+- Revisada a tela de WhatsApp usando as tabelas existentes.
+- Configuração por tenant: provedor, instância, número e status.
+- Templates: criação, edição, ativação/desativação.
+- Histórico: últimas 50 mensagens, status, direção, número e filtro.
+- Corrigido o fluxo de abertura/fechamento do formulário de template.
+- **Importante:** esta etapa não inventa nem implementa um endpoint de envio real; a integração de transporte deve ser validada contra a Edge Function/infra existente.
+
+## 5. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
 
-## 5. Próximas etapas
+## 6. Próximas etapas
 1. **WhatsApp real:** revisar conexão, templates, histórico, estados e preparar/validar envio pela integração existente.
 2. **Automações:** validar execução real, histórico de disparos, deduplicação, retries e associação com agendamentos.
 3. **Configurações:** transformar a tela em configuração real da empresa, não placeholder.
@@ -60,7 +68,7 @@ A base visual e os CRUDs principais existem, mas ainda precisam de revisão sist
 9. **E2E:** executar os fluxos principais com usuário Superadmin e usuário de empresa.
 10. **README/deploy:** alinhar documentação final ao estado real.
 
-## 6. Pendências conhecidas
+## 7. Pendências conhecidas
 - Nem todos os módulos possuem profundidade funcional equivalente.
 - Algumas telas administrativas ainda são placeholders.
 - Execução real de automações/WhatsApp precisa ser validada além do CRUD.
