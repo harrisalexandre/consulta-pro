@@ -81,22 +81,24 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 - Isso impede que alterar o relógio local do computador faça o sistema considerar outro “agora” para estas operações.
 - **Regra arquitetural:** automações que efetivamente enviam mensagens devem ser disparadas por backend/Edge Function usando `now()` do servidor + `companies.timezone`; nunca pelo relógio do navegador.
 
-## 9. Etapa 1 de 13 — Baseline de arquitetura, integrações, segurança e desempenho
-Antes de implementar novas integrações, o padrão do Karate ERP será usado como referência técnica validada.
-- Capacitor: padrão para Android/iOS, reutilizando a base React.
-- WhatsApp/WAHA: validar a implementação efetivamente usada no Karate antes do transporte real.
-- Segurança: aproveitar padrões do Karate para autenticação, secrets, CI, auditoria de dependências e permissões, adaptados ao multi-tenant/RLS.
-- CI/CD: usar instalação reprodutível (`npm ci`) e auditoria de dependências como baseline.
-- Mobile: push notifications e plugins Capacitor somente quando houver requisito real.
+## 9. Etapa 8 de 13 — Baseline de arquitetura, integrações, segurança e desempenho
+Esta etapa foi adicionada ao plano sem reiniciar o progresso. O Karate ERP será usado como referência técnica comprovada, adaptando os padrões ao modelo multi-tenant do Consulta Pro.
+
+- Capacitor: adotar como padrão para transformar a aplicação React em Android/iOS.
+- WhatsApp/WAHA: validar a implementação efetivamente usada no Karate antes de conectar o transporte real do Consulta Pro.
+- Segurança: reaproveitar padrões comprovados do Karate para autenticação, secrets, permissões, CI e auditoria de dependências, adaptando-os ao RLS/tenant isolation.
+- CI/CD: incorporar instalação reprodutível (npm ci) e auditoria de dependências como baseline.
+- Mobile: considerar push notifications e plugins Capacitor do Karate somente quando houver requisito real.
 - Desempenho: revisar bundle, consultas, índices, paginação, cache e chamadas repetidas.
-- Resultado esperado: checklist técnica do Karate convertida em requisitos do Consulta Pro e lacunas identificadas.
-- Regra: integração só é considerada pronta com transporte, autenticação, persistência, tratamento de erro e teste do fluxo completo.
+- Regra: uma integração só é considerada pronta quando houver transporte, autenticação, persistência necessária, tratamento de erro e teste do fluxo completo.
+- Resultado esperado: checklist técnica do Karate aplicada ao Consulta Pro e lacunas registradas antes das integrações reais.
+
 ## 10. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
 
-## 9. Próximas etapas
+## 11. Próximas etapas
 1. **WhatsApp real:** revisar conexão, templates, histórico, estados e preparar/validar envio pela integração existente.
 2. **Automações:** validar execução real, histórico de disparos, deduplicação, retries e associação com agendamentos.
 3. **Configurações:** transformar a tela em configuração real da empresa, não placeholder.
