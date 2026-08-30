@@ -409,7 +409,7 @@ function AutomationsPage(){
 
   function resetForm(){
     setEditing(null);setName('');setType('appointment_reminder');setAdvance('1440');setChannel('whatsapp');
-    setTemplateId(templates[0]?.id||'');setEnabled(true);setError('');setSuccess('');setOpen(true);
+    setTemplateId(templates[0]?.id || ''); setEnabled(true); setError(''); setSuccess(''); setOpen(true);
   }
   function edit(a:any){
     setEditing(a);setName(a.name||'');setType(a.type||'appointment_reminder');setAdvance(String(a.advance_minutes??1440));
