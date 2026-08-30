@@ -71,3 +71,11 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Corrigido para usar o cliente já narrowed (`client.from(...)`).
 - Commit: `56200eded3acf904f2207633211714d0331b00f1`.
 - **Próximo:** aguardar novo build do Render e continuar corrigindo somente erros reais reportados pelo `tsc`.
+
+
+### Auditoria App.tsx — correção completa do nullable Supabase
+- Revisado o arquivo inteiro após recorrência de `TS18047`.
+- O problema não estava restrito ao `RoleGate`: havia acessos ao cliente nullable também em `SessionGate`, `AdminDashboard` e `NewCompany`.
+- Todos os fluxos assíncronos agora fazem narrowing local antes de acessar Auth/Database.
+- Commit: `7a0a026fab74ea018a710a69cb7bc1e3b73221e6`.
+- **Próximo:** validar novo build no Render. Se surgir outro erro, corrigir a causa no arquivo inteiro antes de prosseguir.
