@@ -64,3 +64,10 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Corrigido com narrowing local (`const client=supabase`) antes de `auth.getUser()`.
 - Commit da correção: `63e147ae7f2eb6a4e803fa91c9a8a9d59fc97eac`.
 - **Próximo:** aguardar novo build do Render. Não avançar para auditoria funcional até `tsc -b && vite build` ficar verde.
+
+
+### Build Render — correção complementar
+- O erro `TS18047` persistiu porque o narrowing anterior cobria `auth.getUser()`, mas a consulta seguinte ainda usava o `supabase` nullable diretamente em `from('profiles')`.
+- Corrigido para usar o cliente já narrowed (`client.from(...)`).
+- Commit: `56200eded3acf904f2207633211714d0331b00f1`.
+- **Próximo:** aguardar novo build do Render e continuar corrigindo somente erros reais reportados pelo `tsc`.
