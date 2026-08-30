@@ -69,3 +69,10 @@ Sem essas secrets, não concluir o teste real de QR/conexão/envio.
 Login → profissional → paciente → WhatsApp → template → automação → agendamento → dispatch → WAHA → mensagem → histórico.
 
 Não considerar a etapa concluída apenas porque compila; validar o fluxo real.
+
+### Correção — TenantProvider
+- Identificado outro uso inseguro do Supabase Auth: `onAuthStateChange` chamava `refresh()` diretamente, e `refresh()` executa `auth.getUser()`.
+- Isso pode bloquear a autenticação e explicar a tela presa em “Carregando acesso...”.
+- Corrigido usando `setTimeout(..., 0)` para executar `refresh()` fora do callback do Auth.
+- Commit: `7302626fdd522dfe3f9b3a887306aa51823e53d1`.
+- **Próximo:** validar o novo deploy do Render em `/` e `/login`.
