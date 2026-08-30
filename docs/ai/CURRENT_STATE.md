@@ -73,7 +73,15 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 - O fuso é persistido por tenant e deve ser usado como referência para agenda e automações.
 - **Pendente:** revisar todos os pontos de conversão/exibição de datas e o executor das automações para garantir uso consistente do timezone do tenant.
 
-## 8. Onde está o desenvolvimento agora
+## 8. Segurança temporal — concluída
+- O horário atual usado pelo frontend pode ser obtido de `public.server_now()`, diretamente no PostgreSQL/Supabase, em vez do relógio do PC.
+- Agenda converte horários digitados pelo usuário usando o `timezone` do tenant antes de persistir em UTC.
+- Agenda e Dashboard calculam o início/fim do dia no fuso do consultório.
+- Exibição de horários da agenda usa o fuso do tenant.
+- Isso impede que alterar o relógio local do computador faça o sistema considerar outro “agora” para estas operações.
+- **Regra arquitetural:** automações que efetivamente enviam mensagens devem ser disparadas por backend/Edge Function usando `now()` do servidor + `companies.timezone`; nunca pelo relógio do navegador.
+
+## 9. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
