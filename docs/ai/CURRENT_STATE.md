@@ -81,7 +81,17 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 - Isso impede que alterar o relógio local do computador faça o sistema considerar outro “agora” para estas operações.
 - **Regra arquitetural:** automações que efetivamente enviam mensagens devem ser disparadas por backend/Edge Function usando `now()` do servidor + `companies.timezone`; nunca pelo relógio do navegador.
 
-## 9. Onde está o desenvolvimento agora
+## 9. Etapa 1 de 13 — Baseline de arquitetura, integrações, segurança e desempenho
+Antes de implementar novas integrações, o padrão do Karate ERP será usado como referência técnica validada.
+- Capacitor: padrão para Android/iOS, reutilizando a base React.
+- WhatsApp/WAHA: validar a implementação efetivamente usada no Karate antes do transporte real.
+- Segurança: aproveitar padrões do Karate para autenticação, secrets, CI, auditoria de dependências e permissões, adaptados ao multi-tenant/RLS.
+- CI/CD: usar instalação reprodutível (`npm ci`) e auditoria de dependências como baseline.
+- Mobile: push notifications e plugins Capacitor somente quando houver requisito real.
+- Desempenho: revisar bundle, consultas, índices, paginação, cache e chamadas repetidas.
+- Resultado esperado: checklist técnica do Karate convertida em requisitos do Consulta Pro e lacunas identificadas.
+- Regra: integração só é considerada pronta com transporte, autenticação, persistência, tratamento de erro e teste do fluxo completo.
+## 10. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
@@ -98,7 +108,7 @@ A base visual e os CRUDs principais existem, mas ainda precisam de revisão sist
 9. **E2E:** executar os fluxos principais com usuário Superadmin e usuário de empresa.
 10. **README/deploy:** alinhar documentação final ao estado real.
 
-## 10. Pendências conhecidas
+## 12. Pendências conhecidas
 - Nem todos os módulos possuem profundidade funcional equivalente.
 - Algumas telas administrativas ainda são placeholders.
 - Execução real de automações/WhatsApp precisa ser validada além do CRUD.
