@@ -273,59 +273,20 @@ function PatientsPage(){
   </TenantPage>
 }
 function ProfessionalsPage(){
-  const{activeCompany}=useTenant();
-  const[items,setItems]=useState<any[]>([]);
-  const[loading,setLoading]=useState(true);
-  const[open,setOpen]=useState(false);
-  const[editing,setEditing]=useState<any>(null);
-  const[name,setName]=useState('');
-  const[specialty,setSpecialty]=useState('');
-  const[registration,setRegistration]=useState('');
-  const[status,setStatus]=useState<'active'|'inactive'>('active');
-  const[search,setSearch]=useState('');
-  const[error,setError]=useState('');
-  const[busy,setBusy]=useState(false);
-
-  async function load(){
-    if(!supabase||!activeCompany)return;
-    setLoading(true);
-    const{data,error}=await supabase.from('professionals').select('*').eq('company_id',activeCompany.id).order('name');
-    if(error)setError(error.message);
-    setItems(data||[]);
-    setLoading(false);
-  }
+  const{activeCompany}=useTenant(); const[items,setItems]=useState<any[]>([]); const[loading,setLoading]=useState(true); const[open,setOpen]=useState(false); const[detail,setDetail]=useState<any>(null); const[history,setHistory]=useState<any[]>([]);
+  const[editing,setEditing]=useState<any>(null); const[name,setName]=useState(''); const[specialty,setSpecialty]=useState(''); const[registration,setRegistration]=useState(''); const[status,setStatus]=useState<'active'|'inactive'>('active'); const[search,setSearch]=useState(''); const[error,setError]=useState(''); const[busy,setBusy]=useState(false);
+  async function load(){if(!supabase||!activeCompany)return;setLoading(true);const{data,error}=await supabase.from('professionals').select('*').eq('company_id',activeCompany.id).order('name');if(error)setError(error.message);setItems(data||[]);setLoading(false)}
   useEffect(()=>{load()},[activeCompany?.id]);
-
-  function openNew(){
-    setEditing(null);setName('');setSpecialty('');setRegistration('');setStatus('active');setError('');setOpen(true);
-  }
-  function openEdit(p:any){
-    setEditing(p);setName(p.name||'');setSpecialty(p.specialty||'');setRegistration(p.professional_registration||'');setStatus(p.status==='inactive'?'inactive':'active');setError('');setOpen(true);
-  }
-  async function save(e:React.FormEvent){
-    e.preventDefault();
-    if(!supabase||!activeCompany)return;
-    setBusy(true);setError('');
-    const payload={name:name.trim(),specialty:specialty.trim()||null,professional_registration:registration.trim()||null,status};
-    const result=editing
-      ? await supabase.from('professionals').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id)
-      : await supabase.from('professionals').insert({company_id:activeCompany.id,...payload});
-    if(result.error)setError(result.error.message);
-    else{setOpen(false);await load()}
-    setBusy(false);
-  }
-  const filtered=items.filter(p=>String(p.name||'').toLowerCase().includes(search.toLowerCase())||String(p.specialty||'').toLowerCase().includes(search.toLowerCase()));
-
-  return <TenantPage title="Profissionais" description="Profissionais que realizam os atendimentos." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo profissional</button>}>
-    <section className="panel">
-      <div className="head"><div><h2>Equipe</h2><p>{items.length} profissional(is)</p></div><input style={{maxWidth:280}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar profissional..."/></div>
-      {loading?<div className="empty-box">Carregando...</div>:filtered.length===0?<div className="empty-box"><UserRound size={35}/><h2>{items.length?'Nenhum resultado':'Nenhum profissional'}</h2><p>{items.length?'Tente outro nome ou especialidade.':'Cadastre o primeiro profissional deste consultório.'}</p></div>:filtered.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.name}</b><small>{p.specialty||'Especialidade não informada'} {p.professional_registration?'· '+p.professional_registration:''}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>openEdit(p)}>Editar</button></div>)}
-    </section>
-    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}>
-      <div className="head"><div><h2>{editing?'Editar profissional':'Novo profissional'}</h2><p>Dados profissionais e status do cadastro.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div>
-      <div className="form-grid"><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Especialidade<input value={specialty} onChange={e=>setSpecialty(e.target.value)}/></label><label>Registro<input value={registration} onChange={e=>setRegistration(e.target.value)}/></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value as 'active'|'inactive')}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label></div>
-      {error&&<div className="form-error">{error}</div>}<button className="hero-btn" disabled={busy}>{busy?'Salvando...':editing?'Salvar alterações':'Salvar profissional'}</button>
-    </form></div>}
+  function openNew(){setEditing(null);setName('');setSpecialty('');setRegistration('');setStatus('active');setError('');setOpen(true)}
+  function openEdit(p:any){setEditing(p);setName(p.name||'');setSpecialty(p.specialty||'');setRegistration(p.professional_registration||'');setStatus(p.status==='inactive'?'inactive':'active');setError('');setOpen(true)}
+  async function openDetail(p:any){setDetail(p);setHistory([]);if(!supabase||!activeCompany)return;const{data,error}=await supabase.from('appointments').select('*,patients(full_name)').eq('company_id',activeCompany.id).eq('professional_id',p.id).order('starts_at',{ascending:false});if(error)setError(error.message);setHistory(data||[])}
+  async function save(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;setBusy(true);setError('');const payload={name:name.trim(),specialty:specialty.trim()||null,professional_registration:registration.trim()||null,status};const result=editing?await supabase.from('professionals').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id):await supabase.from('professionals').insert({company_id:activeCompany.id,...payload});if(result.error)setError(result.error.message);else{setOpen(false);await load()}setBusy(false)}
+  const filtered=items.filter(p=>String(p.name||'').toLowerCase().includes(search.toLowerCase())||String(p.specialty||'').toLowerCase().includes(search.toLowerCase())||String(p.professional_registration||'').toLowerCase().includes(search.toLowerCase()));
+  return <TenantPage title="Profissionais" description="Equipe, especialidades e agenda de atendimento." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo profissional</button>}>
+    <section className="panel"><div className="head"><div><h2>Equipe</h2><p>{items.length} profissional(is)</p></div><input style={{maxWidth:300}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar por nome, especialidade..."/></div>
+    {error&&<div className="form-error">{error}</div>}{loading?<div className="empty-box">Carregando...</div>:filtered.length===0?<div className="empty-box"><UserRound size={35}/><h2>{items.length?'Nenhum resultado':'Nenhum profissional'}</h2><p>{items.length?'Tente outro termo.':'Cadastre o primeiro profissional deste consultório.'}</p></div>:filtered.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.name}</b><small>{p.specialty||'Especialidade não informada'} {p.professional_registration?'· '+p.professional_registration:''}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>openDetail(p)}>Ver agenda</button><button className="back-link" onClick={()=>openEdit(p)}>Editar</button></div>)}</section>
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>{editing?'Editar profissional':'Novo profissional'}</h2><p>Dados usados na Agenda e nos atendimentos.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid"><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Especialidade<input value={specialty} onChange={e=>setSpecialty(e.target.value)}/></label><label>Registro profissional<input value={registration} onChange={e=>setRegistration(e.target.value)}/></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value as 'active'|'inactive')}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn" disabled={busy}>{busy?'Salvando...':editing?'Salvar alterações':'Salvar profissional'}</button></form></div>}
+    {detail&&<div className="modal-backdrop"><div className="modal panel"><div className="head"><div><h2>{detail.name}</h2><p>{detail.specialty||'Especialidade não informada'}</p></div><button className="icon-btn" onClick={()=>setDetail(null)}><XCircle size={18}/></button></div><h3>Atendimentos</h3>{history.length===0?<div className="empty-box">Nenhum atendimento encontrado.</div>:history.map(a=><div className="row" key={a.id}><CalendarDays size={18}/><span><b>{new Date(a.starts_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}</b><small>{a.patients?.full_name||'Paciente'} · {a.appointment_type||'Consulta'}</small></span><i>{a.status}</i></div>)}<button className="back-link" onClick={()=>setDetail(null)}>Fechar</button></div></div>}
   </TenantPage>
 }
 
