@@ -43,7 +43,7 @@ O desenvolvimento segue por fases e uma fase só é considerada concluída quand
 2. Superadmin: dashboard global, empresas, usuários e permissões.
 3. Onboarding: configuração do consultório e primeiro Owner.
 4. Operação: profissionais, pacientes e agenda com CRUD real. **Base atual:** pacientes e profissionais possuem criação, edição, status e busca; agenda possui criação, edição, confirmação e cancelamento.
-5. Comunicação: WhatsApp, templates e histórico de mensagens. **Base atual:** configuração do WhatsApp, CRUD de templates e leitura do histórico já persistem no Supabase por tenant.
+5. Comunicação: WhatsApp, templates e histórico de mensagens. **Base atual:** configuração do WhatsApp, CRUD de templates e leitura do histórico já persistem no Supabase por tenant. Automações possuem CRUD por tenant, com gatilho, antecedência, canal, template e ativação/desativação.
 6. Automações: gatilhos, regras, execução e histórico.
 7. Qualidade: loading, empty/error states, responsividade e acesso direto às rotas.
 8. Segurança: revisão de RLS, autorização e isolamento entre tenants.
