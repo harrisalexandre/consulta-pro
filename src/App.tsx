@@ -65,6 +65,30 @@ function SessionGate() {
   return <Outlet/>
 }
 
+
+function RoleGate({admin}:{admin:boolean}){
+  const [state,setState]=useState<'loading'|'allowed'|'denied'>('loading')
+
+  useEffect(()=>{
+    let alive=true
+    async function load(){
+      if(!supabase){if(alive)setState('denied');return}
+      const{data:{user}}=await supabase.auth.getUser()
+      if(!user){if(alive)setState('denied');return}
+      const{data:profile}=await supabase.from('profiles').select('is_superadmin').eq('id',user.id).maybeSingle()
+      const jwtAdmin=user.app_metadata?.role==='superadmin'||user.app_metadata?.is_superadmin===true
+      const isAdmin=Boolean(profile?.is_superadmin||jwtAdmin)
+      if(alive)setState(isAdmin===admin?'allowed':'denied')
+    }
+    load()
+    return()=>{alive=false}
+  },[admin])
+
+  if(state==='loading')return <div className="auth"><div className="panel">Carregando acesso...</div></div>
+  if(state==='denied')return <Navigate to={admin?'/dashboard':'/admin/dashboard'} replace/>
+  return <Outlet/>
+}
+
 function AdminLayout(){
   const navigate=useNavigate()
   async function logout(){await supabase?.auth.signOut();navigate('/login')}
@@ -249,7 +273,8 @@ export default function App(){
     <Route path="/login" element={<Login/>}/>
 
     <Route element={<SessionGate/>}>
-      <Route element={<AdminLayout/>}>
+      <Route element={<RoleGate admin={true}/>}>
+        <Route element={<AdminLayout/>}>
         <Route path="admin/dashboard" element={<AdminDashboard/>}/>
         <Route path="admin/empresas" element={<AdminCompanies/>}/>
         <Route path="admin/empresas/nova" element={<NewCompany/>}/>
@@ -268,9 +293,11 @@ export default function App(){
         <Route path="permissoes" element={<Permissions/>}/>
         <Route path="mensagens" element={<AdminMessages/>}/>
         <Route path="atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
+        </Route>
       </Route>
 
-      <Route element={<TenantLayout/>}>
+      <Route element={<RoleGate admin={false}/>}>
+        <Route element={<TenantLayout/>}>
         <Route index element={<Navigate to="/dashboard" replace/>}/>
         <Route path="dashboard" element={<TenantDashboard/>}/>
         <Route path="agenda" element={<AgendaPage/>}/>
@@ -279,6 +306,7 @@ export default function App(){
         <Route path="whatsapp" element={<WhatsAppPage/>}/>
         <Route path="automacoes" element={<AutomationsPage/>}/>
         <Route path="configuracoes" element={<AdminPlaceholder title="Configurações" description="Preferências e dados da empresa." icon={Settings}/>}/>
+        </Route>
       </Route>
     </Route>
 
