@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { Outlet } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export type Company={id:string;name:string;legal_name?:string|null;cnpj?:string|null;phone?:string|null;email?:string|null}
@@ -62,7 +63,7 @@ export function TenantProvider({children}:{children:ReactNode}){
     localStorage.setItem('consulta-pro-company',c.id)
   }
 
-  return <TenantContext.Provider value={{companies,activeCompany,loading,setActiveCompany,refresh}}>{children}</TenantContext.Provider>
+  return <TenantContext.Provider value={{companies,activeCompany,loading,setActiveCompany,refresh}}>{children ?? <Outlet/>}</TenantContext.Provider>
 }
 
 export function useTenant(){const v=useContext(TenantContext);if(!v)throw new Error('useTenant must be used inside TenantProvider');return v}
