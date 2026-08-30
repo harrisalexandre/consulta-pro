@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Navigate, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, NavLink, Outlet, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import {
   Activity, ArrowLeft, BarChart3, Bot, Building2, CalendarDays, CheckCircle2,
   ChevronRight, CircleAlert, LayoutDashboard, LogIn, LogOut, MessageCircle,
@@ -46,18 +46,29 @@ function Login() {
 }
 
 function SessionGate() {
-  const [state,setState]=useState<'loading'|'admin'|'tenant'|'none'>('loading')
-  useEffect(()=>{let alive=true;async function load(){if(!supabase){setState('none');return}const{data:{session}}=await supabase.auth.getSession();if(!session){if(alive)setState('none');return}const{data}=await supabase.from('profiles').select('is_superadmin').eq('id',session.user.id).maybeSingle();const jwtAdmin=session.user.app_metadata?.role==='superadmin'||session.user.app_metadata?.is_superadmin===true;if(alive)setState(data?.is_superadmin||jwtAdmin?'admin':'tenant')}load();const{data}=supabase?.auth.onAuthStateChange(()=>load())||{data:{subscription:{unsubscribe(){}}}};return()=>{alive=false;data.subscription.unsubscribe()}}
-  ,[])
+  const [state,setState]=useState<'loading'|'ready'|'none'>('loading')
+
+  useEffect(()=>{
+    let alive=true
+    async function load(){
+      if(!supabase){if(alive)setState('none');return}
+      const{data:{session}}=await supabase.auth.getSession()
+      if(alive)setState(session?'ready':'none')
+    }
+    load()
+    const{data}=supabase?.auth.onAuthStateChange(()=>load())||{data:{subscription:{unsubscribe(){}}}}
+    return()=>{alive=false;data.subscription.unsubscribe()}
+  },[])
+
   if(state==='loading')return <div className="auth"><div className="panel">Carregando sessão...</div></div>
   if(state==='none')return <Navigate to="/login" replace/>
-  return state==='admin'?<AdminLayout/>:<TenantLayout/>
+  return <Outlet/>
 }
 
 function AdminLayout(){
   const navigate=useNavigate()
   async function logout(){await supabase?.auth.signOut();navigate('/login')}
-  return <div className="layout"><aside><Logo/><div className="company"><strong>Administração</strong><small>Visão global da plataforma</small></div><nav className="sidebar-nav">{adminNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={18}/><span>{label}</span></NavLink>)}</nav><div className="profile"><b>SA</b><span>Superadmin<small>Controle global</small></span><button onClick={logout} title="Sair"><LogOut size={15}/></button></div></aside><main><header><strong>Consulta Pro</strong><span>Superadmin</span></header><Routes><Route index element={<Navigate to="/admin/dashboard" replace/>}/><Route path="/admin/dashboard" element={<AdminDashboard/>}/><Route path="/admin/empresas" element={<AdminCompanies/>}/><Route path="/admin/empresas/nova" element={<NewCompany/>}/><Route path="/admin/empresas/:id" element={<CompanyDetail/>}/><Route path="/admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/><Route path="/admin/permissoes" element={<Permissions/>}/><Route path="/admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/><Route path="/admin/mensagens" element={<AdminMessages/>}/><Route path="/admin/automacoes" element={<AdminPlaceholder title="Automações" description="Automações executadas pelos tenants." icon={Bot}/>}/><Route path="/admin/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/><Route path="/admin/configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/><Route path="/empresas" element={<AdminCompanies/>}/><Route path="/empresas/nova" element={<NewCompany/>}/><Route path="/empresas/:id" element={<CompanyDetail/>}/><Route path="/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/><Route path="/permissoes" element={<Permissions/>}/><Route path="/mensagens" element={<AdminMessages/>}/><Route path="/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/><Route path="*" element={<Navigate to="/admin/dashboard" replace/>}/></Routes></main></div>
+  return <div className="layout"><aside><Logo/><div className="company"><strong>Administração</strong><small>Visão global da plataforma</small></div><nav className="sidebar-nav">{adminNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={18}/><span>{label}</span></NavLink>)}</nav><div className="profile"><b>SA</b><span>Superadmin<small>Controle global</small></span><button onClick={logout} title="Sair"><LogOut size={15}/></button></div></aside><main><header><strong>Consulta Pro</strong><span>Superadmin</span></header><Outlet/></main></div>
 }
 
 function Metric({label,value,icon:Icon}: {label:string;value:string|number;icon?:Icon}){return <div className="card">{Icon&&<Icon size={17}/>}<span>{label}</span><b>{value}</b></div>}
@@ -227,9 +238,52 @@ function TenantLayout(){
   const{activeCompany,companies,setActiveCompany}=useTenant();const navigate=useNavigate()
   async function logout(){await supabase?.auth.signOut();navigate('/login')}
   if(!activeCompany)return <div className="content"><section className="panel"><Building2 size={36}/><h2>Nenhuma empresa vinculada</h2><p>Seu usuário ainda não possui um consultório associado.</p></section></div>
-  return <div className="layout"><aside><Logo/><div className="company"><strong>{activeCompany.name}</strong><small>Tenant ativo</small></div>{companies.length>1&&<select className="company-select" value={activeCompany.id} onChange={e=>{const c=companies.find(x=>x.id===e.target.value);if(c)setActiveCompany(c)}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<nav className="sidebar-nav">{tenantNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={18}/><span>{label}</span></NavLink>)}</nav><div className="profile"><b>U</b><span>Conta<small>Tenant protegido por RLS</small></span><button onClick={logout}><LogOut size={15}/></button></div></aside><main><header><strong>{activeCompany.name}</strong><span>Operação</span></header><Routes><Route index element={<Navigate to="/dashboard" replace/>}/><Route path="/dashboard" element={<TenantDashboard/>}/><Route path="/agenda" element={<AgendaPage/>}/><Route path="/pacientes" element={<PatientsPage/>}/><Route path="/profissionais" element={<ProfessionalsPage/>}/><Route path="/whatsapp" element={<WhatsAppPage/>}/><Route path="/automacoes" element={<AutomationsPage/>}/><Route path="/configuracoes" element={<AdminPlaceholder title="Configurações" description="Preferências e dados da empresa." icon={Settings}/>}/><Route path="*" element={<Navigate to="/dashboard" replace/>}/></Routes></main></div>
+  return <div className="layout"><aside><Logo/><div className="company"><strong>{activeCompany.name}</strong><small>Tenant ativo</small></div>{companies.length>1&&<select className="company-select" value={activeCompany.id} onChange={e=>{const c=companies.find(x=>x.id===e.target.value);if(c)setActiveCompany(c)}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<nav className="sidebar-nav">{tenantNav.map(([path,label,Icon])=><NavLink key={path} to={path}><Icon size={18}/><span>{label}</span></NavLink>)}</nav><div className="profile"><b>U</b><span>Conta<small>Tenant protegido por RLS</small></span><button onClick={logout}><LogOut size={15}/></button></div></aside><main><header><strong>{activeCompany.name}</strong><span>Operação</span></header><Outlet/></main></div>
 }
 
 function TenantDashboard(){const{activeCompany}=useTenant();return <div className="content"><div className="head"><div><h1>Dashboard</h1><p>{activeCompany?.name}</p></div><button className="hero-btn"><Plus size={16}/> Novo atendimento</button></div><div className="metrics"><Metric label="Consultas hoje" value="0"/><Metric label="Confirmadas" value="0"/><Metric label="Pendentes" value="0"/><Metric label="Realizadas" value="0"/></div><div className="grid"><section className="panel"><h2>Próximos atendimentos</h2><Empty text="Os atendimentos reais aparecerão aqui." /></section><section className="panel"><h2>WhatsApp</h2><div className="wa"><MessageCircle size={20}/><span><b>Nenhuma integração conectada</b><small>Configure o número da empresa.</small></span></div></section></div></div>}
 
-export default function App(){return <Routes><Route path="/" element={<Landing/>}/><Route path="/login" element={<Login/>}/><Route path="/app/*" element={<SessionGate/>}/><Route path="/dashboard" element={<SessionGate/>}/><Route path="/admin/*" element={<SessionGate/>}/><Route path="/empresas/*" element={<SessionGate/>}/><Route path="/usuarios" element={<SessionGate/>}/><Route path="/permissoes" element={<SessionGate/>}/><Route path="/mensagens" element={<SessionGate/>}/><Route path="/atividade" element={<SessionGate/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes>}
+export default function App(){
+  return <Routes>
+    <Route path="/" element={<Landing/>}/>
+    <Route path="/login" element={<Login/>}/>
+
+    <Route element={<SessionGate/>}>
+      <Route element={<AdminLayout/>}>
+        <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
+        <Route path="/admin/empresas" element={<AdminCompanies/>}/>
+        <Route path="/admin/empresas/nova" element={<NewCompany/>}/>
+        <Route path="/admin/empresas/:id" element={<CompanyDetail/>}/>
+        <Route path="/admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="/admin/permissoes" element={<Permissions/>}/>
+        <Route path="/admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/>
+        <Route path="/admin/mensagens" element={<AdminMessages/>}/>
+        <Route path="/admin/automacoes" element={<AdminPlaceholder title="Automações" description="Automações executadas pelos tenants." icon={Bot}/>}/>
+        <Route path="/admin/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
+        <Route path="/admin/configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/>
+        <Route path="/empresas" element={<AdminCompanies/>}/>
+        <Route path="/empresas/nova" element={<NewCompany/>}/>
+        <Route path="/empresas/:id" element={<CompanyDetail/>}/>
+        <Route path="/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="/permissoes" element={<Permissions/>}/>
+        <Route path="/mensagens" element={<AdminMessages/>}/>
+        <Route path="/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
+      </Route>
+
+      <Route element={<TenantLayout/>}>
+        <Route index element={<Navigate to="/dashboard" replace/>}/>
+        <Route path="/dashboard" element={<TenantDashboard/>}/>
+        <Route path="/agenda" element={<AgendaPage/>}/>
+        <Route path="/pacientes" element={<PatientsPage/>}/>
+        <Route path="/profissionais" element={<ProfessionalsPage/>}/>
+        <Route path="/whatsapp" element={<WhatsAppPage/>}/>
+        <Route path="/automacoes" element={<AutomationsPage/>}/>
+        <Route path="/configuracoes" element={<AdminPlaceholder title="Configurações" description="Preferências e dados da empresa." icon={Settings}/>}/>
+      </Route>
+    </Route>
+
+    <Route path="/app" element={<Navigate to="/dashboard" replace/>}/>
+    <Route path="*" element={<Navigate to="/" replace/>}/>
+  </Routes>
+}
+
