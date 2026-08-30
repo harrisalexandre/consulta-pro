@@ -76,3 +76,11 @@ Não considerar a etapa concluída apenas porque compila; validar o fluxo real.
 - Corrigido usando `setTimeout(..., 0)` para executar `refresh()` fora do callback do Auth.
 - Commit: `7302626fdd522dfe3f9b3a887306aa51823e53d1`.
 - **Próximo:** validar o novo deploy do Render em `/` e `/login`.
+
+
+### Correção — isolamento da landing e RoleGate
+- A landing pública estava no mesmo bootstrap do TenantProvider, que inicializa Supabase/Auth mesmo para `/`.
+- O TenantProvider foi removido do bootstrap global e passou a envolver somente as rotas autenticadas.
+- O RoleGate agora trata erros e possui timeout de 8s, evitando ficar indefinidamente em “Carregando acesso...”.
+- Commits: `3f61f84b031d78ddd1a289fb8fa194456104865d` e `b63d7e741b7f065d13a5e2ab18c505ba3f49fe62`.
+- **Próximo:** validar o novo deploy do Render abrindo `/` diretamente. A landing não depende mais do Supabase para montar.
