@@ -79,3 +79,10 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Todos os fluxos assíncronos agora fazem narrowing local antes de acessar Auth/Database.
 - Commit: `7a0a026fab74ea018a710a69cb7bc1e3b73221e6`.
 - **Próximo:** validar novo build no Render. Se surgir outro erro, corrigir a causa no arquivo inteiro antes de prosseguir.
+
+
+### App.tsx — revisão integral de nullable Supabase
+- Refeito o narrowing do cliente em todos os handlers/effects do arquivo, inclusive `Login`, `SessionGate`, `RoleGate`, `AdminDashboard` e `NewCompany`.
+- Removidas condições redundantes que permitiam ao TypeScript perder o narrowing do binding importado.
+- Commit: `71d18b16c03045cd4049b9eac2158f9416680364`.
+- **Próximo:** aguardar o Render. O próximo log deve confirmar se o `TS18047` foi eliminado; não avançar funcionalmente antes do build verde.
