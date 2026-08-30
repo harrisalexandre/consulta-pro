@@ -250,35 +250,35 @@ export default function App(){
 
     <Route element={<SessionGate/>}>
       <Route element={<AdminLayout/>}>
-        <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
-        <Route path="/admin/empresas" element={<AdminCompanies/>}/>
-        <Route path="/admin/empresas/nova" element={<NewCompany/>}/>
-        <Route path="/admin/empresas/:id" element={<CompanyDetail/>}/>
-        <Route path="/admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
-        <Route path="/admin/permissoes" element={<Permissions/>}/>
-        <Route path="/admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/>
-        <Route path="/admin/mensagens" element={<AdminMessages/>}/>
-        <Route path="/admin/automacoes" element={<AdminPlaceholder title="Automações" description="Automações executadas pelos tenants." icon={Bot}/>}/>
-        <Route path="/admin/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
-        <Route path="/admin/configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/>
-        <Route path="/empresas" element={<AdminCompanies/>}/>
-        <Route path="/empresas/nova" element={<NewCompany/>}/>
-        <Route path="/empresas/:id" element={<CompanyDetail/>}/>
-        <Route path="/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
-        <Route path="/permissoes" element={<Permissions/>}/>
-        <Route path="/mensagens" element={<AdminMessages/>}/>
-        <Route path="/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
+        <Route path="admin/dashboard" element={<AdminDashboard/>}/>
+        <Route path="admin/empresas" element={<AdminCompanies/>}/>
+        <Route path="admin/empresas/nova" element={<NewCompany/>}/>
+        <Route path="admin/empresas/:id" element={<CompanyDetail/>}/>
+        <Route path="admin/usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="admin/permissoes" element={<Permissions/>}/>
+        <Route path="admin/whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Saúde das integrações por empresa." icon={MessageCircle}/>}/>
+        <Route path="admin/mensagens" element={<AdminMessages/>}/>
+        <Route path="admin/automacoes" element={<AdminPlaceholder title="Automações" description="Automações executadas pelos tenants." icon={Bot}/>}/>
+        <Route path="admin/atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
+        <Route path="admin/configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/>
+        <Route path="empresas" element={<AdminCompanies/>}/>
+        <Route path="empresas/nova" element={<NewCompany/>}/>
+        <Route path="empresas/:id" element={<CompanyDetail/>}/>
+        <Route path="usuarios" element={<AdminPlaceholder title="Usuários" description="Usuários de toda a plataforma." icon={Users}/>}/>
+        <Route path="permissoes" element={<Permissions/>}/>
+        <Route path="mensagens" element={<AdminMessages/>}/>
+        <Route path="atividade" element={<AdminPlaceholder title="Atividade" description="Auditoria e eventos da plataforma." icon={Activity}/>}/>
       </Route>
 
       <Route element={<TenantLayout/>}>
         <Route index element={<Navigate to="/dashboard" replace/>}/>
-        <Route path="/dashboard" element={<TenantDashboard/>}/>
-        <Route path="/agenda" element={<AgendaPage/>}/>
-        <Route path="/pacientes" element={<PatientsPage/>}/>
-        <Route path="/profissionais" element={<ProfessionalsPage/>}/>
-        <Route path="/whatsapp" element={<WhatsAppPage/>}/>
-        <Route path="/automacoes" element={<AutomationsPage/>}/>
-        <Route path="/configuracoes" element={<AdminPlaceholder title="Configurações" description="Preferências e dados da empresa." icon={Settings}/>}/>
+        <Route path="dashboard" element={<TenantDashboard/>}/>
+        <Route path="agenda" element={<AgendaPage/>}/>
+        <Route path="pacientes" element={<PatientsPage/>}/>
+        <Route path="profissionais" element={<ProfessionalsPage/>}/>
+        <Route path="whatsapp" element={<WhatsAppPage/>}/>
+        <Route path="automacoes" element={<AutomationsPage/>}/>
+        <Route path="configuracoes" element={<AdminPlaceholder title="Configurações" description="Preferências e dados da empresa." icon={Settings}/>}/>
       </Route>
     </Route>
 
