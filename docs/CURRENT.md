@@ -57,3 +57,10 @@ Sem essas secrets, não concluir o teste real de QR/conexão/envio.
 
 ### Regra
 Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo real ponta a ponta.
+
+### Build Render — 30/08/2026
+- O Render clonou corretamente o commit `920690a4816f...` da branch `main`, portanto o deploy está acompanhando o repositório.
+- O build falhou por `TS18047: 'supabase' is possibly 'null'` em `src/App.tsx`, dentro do `RoleGate`.
+- Corrigido com narrowing local (`const client=supabase`) antes de `auth.getUser()`.
+- Commit da correção: `63e147ae7f2eb6a4e803fa91c9a8a9d59fc97eac`.
+- **Próximo:** aguardar novo build do Render. Não avançar para auditoria funcional até `tsc -b && vite build` ficar verde.
