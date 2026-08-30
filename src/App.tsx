@@ -416,62 +416,90 @@ function AgendaPage(){
 }function WhatsAppPage(){
   const{activeCompany}=useTenant();
   const[item,setItem]=useState<any>(null);
+  const[templates,setTemplates]=useState<any[]>([]);
+  const[messages,setMessages]=useState<any[]>([]);
   const[loading,setLoading]=useState(true);
   const[saving,setSaving]=useState(false);
   const[provider,setProvider]=useState('evolution');
   const[instance,setInstance]=useState('');
   const[phone,setPhone]=useState('');
   const[status,setStatus]=useState('disconnected');
+  const[name,setName]=useState('');
+  const[category,setCategory]=useState('lembrete');
+  const[body,setBody]=useState('');
+  const[editingTemplate,setEditingTemplate]=useState<any>(null);
   const[error,setError]=useState('');
   const[success,setSuccess]=useState('');
 
   async function load(){
     if(!supabase||!activeCompany)return;
     setLoading(true);setError('');
-    const{data,error}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();
-    if(error){setError(error.message);setLoading(false);return}
-    setItem(data||null);
-    setProvider(data?.provider||'evolution');
-    setInstance(data?.instance_name||'');
-    setPhone(data?.phone_number||'');
-    setStatus(data?.status||'disconnected');
-    setLoading(false);
+    const[w,t,m]=await Promise.all([
+      supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle(),
+      supabase.from('message_templates').select('*').eq('company_id',activeCompany.id).order('created_at',{ascending:false}),
+      supabase.from('whatsapp_messages').select('id,recipient_number,direction,kind,body,status,sent_at,created_at').eq('company_id',activeCompany.id).order('created_at',{ascending:false}).limit(20)
+    ]);
+    if(w.error)setError(w.error.message);
+    if(t.error)setError(t.error.message);
+    if(m.error)setError(m.error.message);
+    const data=w.data;setItem(data||null);setProvider(data?.provider||'evolution');setInstance(data?.instance_name||'');setPhone(data?.phone_number||'');setStatus(data?.status||'disconnected');
+    setTemplates(t.data||[]);setMessages(m.data||[]);setLoading(false);
   }
   useEffect(()=>{load()},[activeCompany?.id]);
 
-  async function save(e:React.FormEvent){
-    e.preventDefault();
-    if(!supabase||!activeCompany)return;
+  async function saveIntegration(e:React.FormEvent){
+    e.preventDefault();if(!supabase||!activeCompany)return;
     setSaving(true);setError('');setSuccess('');
-    const payload={company_id:activeCompany.id,provider:provider.trim()||'evolution',instance_name:instance.trim()||null,phone_number:phone.trim()||null,status};
-    const result=item
-      ? await supabase.from('whatsapp_integrations').update(payload).eq('id',item.id).eq('company_id',activeCompany.id)
-      : await supabase.from('whatsapp_integrations').insert(payload);
-    if(result.error)setError(result.error.message);
-    else{setSuccess('Configuração do WhatsApp salva.');await load()}
-    setSaving(false);
+    const payload={company_id:activeCompany.id,provider:provider.trim()||'evolution_api',instance_name:instance.trim()||null,phone_number:phone.trim()||null,status};
+    const result=item?await supabase.from('whatsapp_integrations').update(payload).eq('id',item.id).eq('company_id',activeCompany.id):await supabase.from('whatsapp_integrations').insert(payload);
+    if(result.error)setError(result.error.message);else{setSuccess('Configuração do WhatsApp salva.');await load()}setSaving(false);
   }
 
-  return <TenantPage title="WhatsApp" description="Configure o número e a integração de WhatsApp deste consultório.">
+  function editTemplate(t:any){setEditingTemplate(t);setName(t.name);setCategory(t.category);setBody(t.body);setError('');setSuccess('')}
+  function newTemplate(){setEditingTemplate(null);setName('');setCategory('lembrete');setBody('');setError('');setSuccess('')}
+  async function saveTemplate(e:React.FormEvent){
+    e.preventDefault();if(!supabase||!activeCompany)return;
+    setSaving(true);setError('');setSuccess('');
+    const payload={company_id:activeCompany.id,name:name.trim(),category,body:body.trim(),active:true};
+    const result=editingTemplate?await supabase.from('message_templates').update(payload).eq('id',editingTemplate.id).eq('company_id',activeCompany.id):await supabase.from('message_templates').insert(payload);
+    if(result.error)setError(result.error.message);else{setSuccess('Template salvo com sucesso.');newTemplate();await load()}setSaving(false);
+  }
+  async function toggleTemplate(t:any){
+    if(!supabase||!activeCompany)return;
+    const{error}=await supabase.from('message_templates').update({active:!t.active}).eq('id',t.id).eq('company_id',activeCompany.id);
+    if(error)setError(error.message);else load();
+  }
+
+  return <TenantPage title="WhatsApp" description="Integração, mensagens padrão e histórico do consultório.">
     <section className="panel">
-      <div className="head"><div><h2>Integração</h2><p>Os dados ficam vinculados exclusivamente à empresa ativa.</p></div><i>{status==='connected'?'Conectado':status==='pending'?'Aguardando':'Desconectado'}</i></div>
-      {loading?<div className="empty-box">Carregando configuração...</div>:<form className="form-grid" onSubmit={save}>
-        <label>Provedor<select value={provider} onChange={e=>setProvider(e.target.value)}><option value="evolution">Evolution API</option><option value="other">Outro provedor</option></select></label>
+      <div className="head"><div><h2>Integração</h2><p>Configuração vinculada à empresa ativa.</p></div><i>{status==='connected'?'Conectado':status==='connecting'?'Conectando':status==='error'?'Erro':'Desconectado'}</i></div>
+      {loading?<div className="empty-box">Carregando...</div>:<form className="form-grid" onSubmit={saveIntegration}>
+        <label>Provedor<select value={provider} onChange={e=>setProvider(e.target.value)}><option value="evolution_api">Evolution API</option><option value="other">Outro provedor</option></select></label>
         <label>Nome da instância<input value={instance} onChange={e=>setInstance(e.target.value)} placeholder="consultorio-01"/></label>
         <label>Número do WhatsApp<input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+55 11 99999-9999"/></label>
-        <label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="disconnected">Desconectado</option><option value="pending">Aguardando conexão</option><option value="connected">Conectado</option></select></label>
-        {error&&<div className="form-error">{error}</div>}
-        {success&&<div className="form-success">{success}</div>}
+        <label>Status<select value={status} onChange={e=>setStatus(e.target.value)}><option value="disconnected">Desconectado</option><option value="connecting">Conectando</option><option value="connected">Conectado</option><option value="error">Erro</option></select></label>
         <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar configuração'} <CheckCircle2 size={16}/></button></div>
       </form>}
     </section>
+
     <section className="panel">
-      <h2>Próximo passo</h2>
-      <p>Depois de configurar a instância, a integração com a Evolution API poderá usar este vínculo para receber e enviar mensagens.</p>
+      <div className="head"><div><h2>Mensagens padrão</h2><p>Templates reutilizáveis para lembretes e comunicação.</p></div><button className="hero-btn" onClick={newTemplate}><Plus size={16}/> Novo template</button></div>
+      {templates.length===0?<div className="empty-box"><MessageCircle size={30}/><h2>Nenhum template</h2><p>Crie sua primeira mensagem padrão.</p></div>:templates.map(t=><div className="row" key={t.id}><MessageCircle size={18}/><span><b>{t.name}</b><small>{t.category} · {t.body}</small></span><i>{t.active?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>editTemplate(t)}>Editar</button><button className="back-link" onClick={()=>toggleTemplate(t)}>{t.active?'Desativar':'Ativar'}</button></div>)}
+      {(editingTemplate||name||body)&&<form className="form-grid" onSubmit={saveTemplate}>
+        <label>Nome*<input required value={name} onChange={e=>setName(e.target.value)} placeholder="Lembrete de consulta"/></label>
+        <label>Categoria<select value={category} onChange={e=>setCategory(e.target.value)}><option value="lembrete">Lembrete</option><option value="confirmacao">Confirmação</option><option value="pos_consulta">Pós-consulta</option><option value="geral">Geral</option></select></label>
+        <label className="full-field">Mensagem*<textarea required rows={5} value={body} onChange={e=>setBody(e.target.value)} placeholder="Olá {{paciente}}, sua consulta está marcada para {{data}} às {{hora}}."/></label>
+        <div><button className="hero-btn" disabled={saving}>{saving?'Salvando...':'Salvar template'} <CheckCircle2 size={16}/></button></div>
+      </form>}
     </section>
+
+    <section className="panel">
+      <div className="head"><div><h2>Histórico de mensagens</h2><p>Últimas 20 mensagens registradas.</p></div></div>
+      {messages.length===0?<div className="empty-box"><MessageCircle size={30}/><p>Nenhuma mensagem registrada ainda.</p></div>:messages.map(m=><div className="row" key={m.id}><MessageCircle size={17}/><span><b>{m.direction==='outbound'?'Enviada':'Recebida'} · {m.recipient_number||'Número não informado'}</b><small>{m.body} · {new Date(m.created_at).toLocaleString('pt-BR')}</small></span><i>{m.status||'registrada'}</i></div>)}
+    </section>
+    {error&&<div className="form-error">{error}</div>}{success&&<div className="form-success">{success}</div>}
   </TenantPage>
 }
-
 function AutomationsPage(){const{activeCompany}=useTenant();const[items,setItems]=useState<any[]>([]);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('automations').select('*').eq('company_id',activeCompany.id).order('name');setItems(data||[])}load()},[activeCompany?.id]);return <TenantPage title="Automações" description="Regras que executam lembretes e mensagens automaticamente." action={<button className="hero-btn"><Plus size={16}/> Nova automação</button>}><section className="panel">{items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie o lembrete de consulta de 24 horas quando o WhatsApp estiver conectado.</p></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes} min antes · {a.channel}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i></div>)}</section></TenantPage>}
 
 function TenantLayout(){
