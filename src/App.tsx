@@ -40,9 +40,9 @@ function Logo() {
 
 function Login() {
   const navigate = useNavigate()
-  const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [error,setError]=useState(''); const [loading,setLoading]=useState(false)
+  const [email,setEmail]=useState(''); const [password,setPassword]=useState(''); const [showPassword,setShowPassword]=useState(false); const [error,setError]=useState(''); const [loading,setLoading]=useState(false)
   async function submit(e:React.FormEvent){e.preventDefault();setError('');setLoading(true);if(!supabase){setError('Supabase não configurado.');setLoading(false);return}const{error}=await supabase.auth.signInWithPassword({email,password});if(error){setError('E-mail ou senha inválidos.');setLoading(false);return}navigate('/app');}
-  return <div className="auth"><div className="auth-card"><Logo/><h1>Bem-vindo de volta</h1><p>Entre para acessar o sistema.</p><form onSubmit={submit}><label>E-mail<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Senha<input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></label>{error&&<div className="form-error">{error}</div>}<button className="hero-btn full" disabled={loading}>{loading?'Entrando...':'Entrar'}</button></form><button className="back" onClick={()=>navigate('/')}>Voltar para o início</button></div></div>
+  return <div className="auth"><div className="auth-card"><Logo/><h1>Bem-vindo de volta</h1><p>Entre para acessar o sistema.</p><form onSubmit={submit}><label>E-mail<input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></label><label>Senha<div className="password-wrap"><input type={showPassword?'text':'password'} required value={password} onChange={e=>setPassword(e.target.value)}/><button type="button" className="icon-btn" title={showPassword?'Ocultar senha':'Mostrar senha'} onClick={()=>setShowPassword(v=>!v)}>{showPassword?<EyeOff size={17}/>:<Eye size={17}/>}</button></div></label>{error&&<div className="form-error">{error}</div>}<button className="hero-btn full" disabled={loading}>{loading?'Entrando...':'Entrar'}</button></form><button className="back" onClick={()=>navigate('/')}>Voltar para o início</button></div></div>
 }
 
 function SessionGate() {
@@ -254,19 +254,117 @@ function Empty({text}:{text:string}){return <div className="empty-box"><p>{text}
 function TenantPage({title,description,children,action}:{title:string;description:string;children?:React.ReactNode;action?:React.ReactNode}){return <div className="content"><div className="head"><div><h1>{title}</h1><p>{description}</p></div>{action}</div>{children}</div>}
 
 function PatientsPage(){
-  const{activeCompany}=useTenant(); const[items,setItems]=useState<any[]>([]); const[loading,setLoading]=useState(true); const[open,setOpen]=useState(false); const[name,setName]=useState(''); const[phone,setPhone]=useState(''); const[whatsapp,setWhatsapp]=useState(''); const[error,setError]=useState('');
-  async function load(){if(!supabase||!activeCompany)return;setLoading(true);const{data}=await supabase.from('patients').select('*').eq('company_id',activeCompany.id).order('full_name');setItems(data||[]);setLoading(false)}
+  const{activeCompany}=useTenant();
+  const[items,setItems]=useState<any[]>([]);
+  const[loading,setLoading]=useState(true);
+  const[open,setOpen]=useState(false);
+  const[editing,setEditing]=useState<any>(null);
+  const[name,setName]=useState('');
+  const[phone,setPhone]=useState('');
+  const[whatsapp,setWhatsapp]=useState('');
+  const[status,setStatus]=useState<'active'|'inactive'>('active');
+  const[search,setSearch]=useState('');
+  const[error,setError]=useState('');
+  const[busy,setBusy]=useState(false);
+
+  async function load(){
+    if(!supabase||!activeCompany)return;
+    setLoading(true);
+    const{data,error}=await supabase.from('patients').select('*').eq('company_id',activeCompany.id).order('full_name');
+    if(error)setError(error.message);
+    setItems(data||[]);
+    setLoading(false);
+  }
   useEffect(()=>{load()},[activeCompany?.id]);
-  async function save(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;setError('');const{error}=await supabase.from('patients').insert({company_id:activeCompany.id,full_name:name,phone,whatsapp});if(error)setError(error.message);else{setName('');setPhone('');setWhatsapp('');setOpen(false);load()}}
-  return <TenantPage title="Pacientes" description="Cadastro e histórico dos pacientes." action={<button className="hero-btn" onClick={()=>setOpen(true)}><Plus size={16}/> Novo paciente</button>}><section className="panel">{loading?<div className="empty-box">Carregando...</div>:items.length===0?<div className="empty-box"><Users size={35}/><h2>Nenhum paciente</h2><p>Cadastre o primeiro paciente deste consultório.</p></div>:items.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.full_name}</b><small>{p.whatsapp||p.phone||'Sem telefone'}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i></div>)}</section>{open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><h2>Novo paciente</h2><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid"><label>Nome completo*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Telefone<input value={phone} onChange={e=>setPhone(e.target.value)}/></label><label>WhatsApp<input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)}/></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">Salvar paciente</button></form></div>}</TenantPage>
+
+  function openNew(){
+    setEditing(null);setName('');setPhone('');setWhatsapp('');setStatus('active');setError('');setOpen(true);
+  }
+  function openEdit(p:any){
+    setEditing(p);setName(p.full_name||'');setPhone(p.phone||'');setWhatsapp(p.whatsapp||'');setStatus(p.status==='inactive'?'inactive':'active');setError('');setOpen(true);
+  }
+  async function save(e:React.FormEvent){
+    e.preventDefault();
+    if(!supabase||!activeCompany)return;
+    setBusy(true);setError('');
+    const payload={full_name:name.trim(),phone:phone.trim()||null,whatsapp:whatsapp.trim()||null,status};
+    const result=editing
+      ? await supabase.from('patients').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id)
+      : await supabase.from('patients').insert({company_id:activeCompany.id,...payload});
+    if(result.error)setError(result.error.message);
+    else{setOpen(false);await load()}
+    setBusy(false);
+  }
+  const filtered=items.filter(p=>String(p.full_name||'').toLowerCase().includes(search.toLowerCase())||String(p.whatsapp||p.phone||'').includes(search));
+
+  return <TenantPage title="Pacientes" description="Cadastro e histórico dos pacientes." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo paciente</button>}>
+    <section className="panel">
+      <div className="head"><div><h2>Pacientes</h2><p>{items.length} cadastro(s)</p></div><input style={{maxWidth:280}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar paciente..."/></div>
+      {loading?<div className="empty-box">Carregando...</div>:filtered.length===0?<div className="empty-box"><Users size={35}/><h2>{items.length?'Nenhum resultado':'Nenhum paciente'}</h2><p>{items.length?'Tente outro nome ou telefone.':'Cadastre o primeiro paciente deste consultório.'}</p></div>:filtered.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.full_name}</b><small>{p.whatsapp||p.phone||'Sem telefone'}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>openEdit(p)}>Editar</button></div>)}
+    </section>
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}>
+      <div className="head"><div><h2>{editing?'Editar paciente':'Novo paciente'}</h2><p>Dados básicos e status do cadastro.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div>
+      <div className="form-grid"><label>Nome completo*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Telefone<input value={phone} onChange={e=>setPhone(e.target.value)}/></label><label>WhatsApp<input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)}/></label>{editing&&<label>Status<select value={status} onChange={e=>setStatus(e.target.value as 'active'|'inactive')}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label>}</div>
+      {error&&<div className="form-error">{error}</div>}<button className="hero-btn" disabled={busy}>{busy?'Salvando...':editing?'Salvar alterações':'Salvar paciente'}</button>
+    </form></div>}
+  </TenantPage>
 }
 
 function ProfessionalsPage(){
-  const{activeCompany}=useTenant();const[items,setItems]=useState<any[]>([]);const[loading,setLoading]=useState(true);const[open,setOpen]=useState(false);const[name,setName]=useState('');const[specialty,setSpecialty]=useState('');const[registration,setRegistration]=useState('');
-  async function load(){if(!supabase||!activeCompany)return;setLoading(true);const{data}=await supabase.from('professionals').select('*').eq('company_id',activeCompany.id).order('name');setItems(data||[]);setLoading(false)}
+  const{activeCompany}=useTenant();
+  const[items,setItems]=useState<any[]>([]);
+  const[loading,setLoading]=useState(true);
+  const[open,setOpen]=useState(false);
+  const[editing,setEditing]=useState<any>(null);
+  const[name,setName]=useState('');
+  const[specialty,setSpecialty]=useState('');
+  const[registration,setRegistration]=useState('');
+  const[status,setStatus]=useState<'active'|'inactive'>('active');
+  const[search,setSearch]=useState('');
+  const[error,setError]=useState('');
+  const[busy,setBusy]=useState(false);
+
+  async function load(){
+    if(!supabase||!activeCompany)return;
+    setLoading(true);
+    const{data,error}=await supabase.from('professionals').select('*').eq('company_id',activeCompany.id).order('name');
+    if(error)setError(error.message);
+    setItems(data||[]);
+    setLoading(false);
+  }
   useEffect(()=>{load()},[activeCompany?.id]);
-  async function save(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;await supabase.from('professionals').insert({company_id:activeCompany.id,name,specialty,professional_registration:registration});setName('');setSpecialty('');setRegistration('');setOpen(false);load()}
-  return <TenantPage title="Profissionais" description="Profissionais que realizam os atendimentos." action={<button className="hero-btn" onClick={()=>setOpen(true)}><Plus size={16}/> Novo profissional</button>}><section className="panel">{loading?<div className="empty-box">Carregando...</div>:items.length===0?<div className="empty-box"><UserRound size={35}/><h2>Nenhum profissional</h2><p>Funciona para consultórios com um ou vários profissionais.</p></div>:items.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.name}</b><small>{p.specialty||'Especialidade não informada'} {p.professional_registration?'· '+p.professional_registration:''}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i></div>)}</section>{open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><h2>Novo profissional</h2><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid"><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Especialidade<input value={specialty} onChange={e=>setSpecialty(e.target.value)}/></label><label>Registro<input value={registration} onChange={e=>setRegistration(e.target.value)}/></label></div><button className="hero-btn">Salvar profissional</button></form></div>}</TenantPage>
+
+  function openNew(){
+    setEditing(null);setName('');setSpecialty('');setRegistration('');setStatus('active');setError('');setOpen(true);
+  }
+  function openEdit(p:any){
+    setEditing(p);setName(p.name||'');setSpecialty(p.specialty||'');setRegistration(p.professional_registration||'');setStatus(p.status==='inactive'?'inactive':'active');setError('');setOpen(true);
+  }
+  async function save(e:React.FormEvent){
+    e.preventDefault();
+    if(!supabase||!activeCompany)return;
+    setBusy(true);setError('');
+    const payload={name:name.trim(),specialty:specialty.trim()||null,professional_registration:registration.trim()||null,status};
+    const result=editing
+      ? await supabase.from('professionals').update(payload).eq('id',editing.id).eq('company_id',activeCompany.id)
+      : await supabase.from('professionals').insert({company_id:activeCompany.id,...payload});
+    if(result.error)setError(result.error.message);
+    else{setOpen(false);await load()}
+    setBusy(false);
+  }
+  const filtered=items.filter(p=>String(p.name||'').toLowerCase().includes(search.toLowerCase())||String(p.specialty||'').toLowerCase().includes(search.toLowerCase()));
+
+  return <TenantPage title="Profissionais" description="Profissionais que realizam os atendimentos." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo profissional</button>}>
+    <section className="panel">
+      <div className="head"><div><h2>Equipe</h2><p>{items.length} profissional(is)</p></div><input style={{maxWidth:280}} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar profissional..."/></div>
+      {loading?<div className="empty-box">Carregando...</div>:filtered.length===0?<div className="empty-box"><UserRound size={35}/><h2>{items.length?'Nenhum resultado':'Nenhum profissional'}</h2><p>{items.length?'Tente outro nome ou especialidade.':'Cadastre o primeiro profissional deste consultório.'}</p></div>:filtered.map(p=><div className="row" key={p.id}><UserRound size={18}/><span><b>{p.name}</b><small>{p.specialty||'Especialidade não informada'} {p.professional_registration?'· '+p.professional_registration:''}</small></span><i>{p.status==='active'?'Ativo':'Inativo'}</i><button className="back-link" onClick={()=>openEdit(p)}>Editar</button></div>)}
+    </section>
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}>
+      <div className="head"><div><h2>{editing?'Editar profissional':'Novo profissional'}</h2><p>Dados profissionais e status do cadastro.</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div>
+      <div className="form-grid"><label>Nome*<input required value={name} onChange={e=>setName(e.target.value)}/></label><label>Especialidade<input value={specialty} onChange={e=>setSpecialty(e.target.value)}/></label><label>Registro<input value={registration} onChange={e=>setRegistration(e.target.value)}/></label><label>Status<select value={status} onChange={e=>setStatus(e.target.value as 'active'|'inactive')}><option value="active">Ativo</option><option value="inactive">Inativo</option></select></label></div>
+      {error&&<div className="form-error">{error}</div>}<button className="hero-btn" disabled={busy}>{busy?'Salvando...':editing?'Salvar alterações':'Salvar profissional'}</button>
+    </form></div>}
+  </TenantPage>
 }
 
 function AgendaPage(){
