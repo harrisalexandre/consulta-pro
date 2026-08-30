@@ -116,7 +116,7 @@ function NewCompany(){
 
 function CompanyDetail(){
   const{id}=useParams();
-  const{companies}=useTenant();
+  const{companies,setActiveCompany}=useTenant();
   const c=companies.find(x=>x.id===id);
   const navigate=useNavigate();
   const[users,setUsers]=useState<any[]>([]);
