@@ -60,12 +60,19 @@ A árvore `docs/ai/` foi criada nesta etapa com:
 - Estados de carregamento, erro e vazio tratados.
 - **Pendente:** não existe Edge Function de execução listada atualmente no projeto Supabase; portanto esta etapa não afirma que os disparos estão sendo executados automaticamente.
 
-## 6. Onde está o desenvolvimento agora
+## 6. Atividade desta etapa — Configurações
+- Tela `/configuracoes` deixou de ser placeholder.
+- Dados completos do consultório: identificação, contato e endereço.
+- Edição do perfil autenticado.
+- Alteração opcional de senha com olhinho de privacidade.
+- Persistência via Supabase respeitando o tenant ativo.
+
+## 7. Onde está o desenvolvimento agora
 **Fase atual: fechamento operacional e validação.**
 
 A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
 
-## 7. Próximas etapas
+## 8. Próximas etapas
 1. **WhatsApp real:** revisar conexão, templates, histórico, estados e preparar/validar envio pela integração existente.
 2. **Automações:** validar execução real, histórico de disparos, deduplicação, retries e associação com agendamentos.
 3. **Configurações:** transformar a tela em configuração real da empresa, não placeholder.
@@ -77,7 +84,7 @@ A base visual e os CRUDs principais existem, mas ainda precisam de revisão sist
 9. **E2E:** executar os fluxos principais com usuário Superadmin e usuário de empresa.
 10. **README/deploy:** alinhar documentação final ao estado real.
 
-## 8. Pendências conhecidas
+## 9. Pendências conhecidas
 - Nem todos os módulos possuem profundidade funcional equivalente.
 - Algumas telas administrativas ainda são placeholders.
 - Execução real de automações/WhatsApp precisa ser validada além do CRUD.
