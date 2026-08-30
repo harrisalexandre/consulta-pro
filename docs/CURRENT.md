@@ -86,3 +86,10 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Removidas condições redundantes que permitiam ao TypeScript perder o narrowing do binding importado.
 - Commit: `71d18b16c03045cd4049b9eac2158f9416680364`.
 - **Próximo:** aguardar o Render. O próximo log deve confirmar se o `TS18047` foi eliminado; não avançar funcionalmente antes do build verde.
+
+
+### Correção definitiva — App.tsx / TS18047
+- Nova revisão do arquivo encontrou acessos diretos restantes ao `supabase` nullable em `RoleGate` e `NewCompany`.
+- Centralizado o narrowing através de `getSupabase()`, eliminando esses acessos diretos do fluxo de negócio.
+- Commit: `073fd163e727ba8c889431282765ebc34bc14543`.
+- **Próximo:** aguardar o Render compilar este commit. Só após `tsc -b && vite build` verde validar a landing pública e as rotas.
