@@ -270,14 +270,61 @@ function ProfessionalsPage(){
 }
 
 function AgendaPage(){
-  const{activeCompany}=useTenant();const[items,setItems]=useState<any[]>([]);const[patients,setPatients]=useState<any[]>([]);const[pros,setPros]=useState<any[]>([]);const[open,setOpen]=useState(false);const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[error,setError]=useState('');
-  async function load(){if(!supabase||!activeCompany)return;const[a,b,c]=await Promise.all([supabase.from('appointments').select('*,patients(full_name),professionals(name)').eq('company_id',activeCompany.id).order('starts_at'),supabase.from('patients').select('id,full_name').eq('company_id',activeCompany.id).eq('status','active').order('full_name'),supabase.from('professionals').select('id,name').eq('company_id',activeCompany.id).eq('status','active').order('name')]);setItems(a.data||[]);setPatients(b.data||[]);setPros(c.data||[])}
-  useEffect(()=>{load()},[activeCompany?.id]);
-  async function save(e:React.FormEvent){e.preventDefault();if(!supabase||!activeCompany)return;setError('');const start=new Date(date+'T'+time);const end=new Date(start.getTime()+Number(duration)*60000);const{data:conflict}=await supabase.from('appointments').select('id').eq('company_id',activeCompany.id).eq('professional_id',professional).lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString()).limit(1);if(conflict&&conflict.length){setError('Este profissional já possui atendimento neste horário.');return}const{error}=await supabase.from('appointments').insert({company_id:activeCompany.id,patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),status:'scheduled'});if(error)setError(error.message);else{setOpen(false);load()}}
-  return <TenantPage title="Agenda" description="Atendimentos por dia, profissional e paciente." action={<button className="hero-btn" onClick={()=>setOpen(true)}><Plus size={16}/> Novo atendimento</button>}><section className="panel">{items.length===0?<div className="empty-box"><CalendarDays size={35}/><h2>Agenda vazia</h2><p>Crie o primeiro atendimento.</p></div>:items.map(a=><div className="row" key={a.id}><CalendarDays size={18}/><span><b>{new Date(a.starts_at).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}</b><small>{a.patients?.full_name||'Paciente'} · {a.professionals?.name||'Profissional'}</small></span><i>{a.status}</i></div>)}</section>{open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><h2>Novo atendimento</h2><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid"><label>Paciente*<select required value={patient} onChange={e=>setPatient(e.target.value)}><option value="">Selecione</option>{patients.map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label><label>Profissional*<select required value={professional} onChange={e=>setProfessional(e.target.value)}><option value="">Selecione</option>{pros.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label><label>Data*<input required type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Hora*<input required type="time" value={time} onChange={e=>setTime(e.target.value)}/></label><label>Duração (min)<input type="number" min="15" step="15" value={duration} onChange={e=>setDuration(e.target.value)}/></label></div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">Agendar</button></form></div>}</TenantPage>
-}
-
-function WhatsAppPage(){const{activeCompany}=useTenant();const[item,setItem]=useState<any>(null);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();setItem(data)}load()},[activeCompany?.id]);return <TenantPage title="WhatsApp" description="Número de WhatsApp da empresa e estado da integração."><section className="panel">{item?<div className="row"><MessageCircle size={20}/><span><b>{item.phone_number||'Número não informado'}</b><small>{item.instance_name||'Instância'} · {item.provider}</small></span><i>{item.status}</i></div>:<div className="empty-box"><MessageCircle size={35}/><h2>Nenhuma integração conectada</h2><p>O número pertence à empresa e poderá ser conectado à Evolution API.</p></div>}</section></TenantPage>}
+  const{activeCompany}=useTenant();
+  const[today,setToday]=useState(()=>new Date());
+  const[items,setItems]=useState<any[]>([]);
+  const[patients,setPatients]=useState<any[]>([]);
+  const[pros,setPros]=useState<any[]>([]);
+  const[open,setOpen]=useState(false);
+  const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');
+  const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[error,setError]=useState('');
+  const dayKey=today.toISOString().slice(0,10);
+  const dayItems=useMemo(()=>items.filter(a=>new Date(a.starts_at).toISOString().slice(0,10)===dayKey),[items,dayKey]);
+  async function load(){
+    if(!supabase||!activeCompany)return;
+    const from=new Date(today);from.setHours(0,0,0,0);const to=new Date(from);to.setDate(to.getDate()+1);
+    const[a,b,c]=await Promise.all([
+      supabase.from('appointments').select('*,patients(full_name),professionals(name)').eq('company_id',activeCompany.id).gte('starts_at',from.toISOString()).lt('starts_at',to.toISOString()).order('starts_at'),
+      supabase.from('patients').select('id,full_name').eq('company_id',activeCompany.id).eq('status','active').order('full_name'),
+      supabase.from('professionals').select('id,name').eq('company_id',activeCompany.id).eq('status','active').order('name')
+    ]);
+    setItems(a.data||[]);setPatients(b.data||[]);setPros(c.data||[]);
+  }
+  useEffect(()=>{load()},[activeCompany?.id,dayKey]);
+  function openNew(){setDate(dayKey);setTime('09:00');setPatient('');setProfessional('');setNotes('');setError('');setOpen(true)}
+  async function save(e:React.FormEvent){
+    e.preventDefault();if(!supabase||!activeCompany)return;setError('');
+    const start=new Date(date+'T'+time);const end=new Date(start.getTime()+Number(duration)*60000);
+    const{data:conflict}=await supabase.from('appointments').select('id').eq('company_id',activeCompany.id).eq('professional_id',professional).neq('status','cancelled').lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString()).limit(1);
+    if(conflict?.length){setError('Este profissional já possui atendimento neste horário.');return}
+    const{error}=await supabase.from('appointments').insert({company_id:activeCompany.id,patient_id:patient,professional_id:professional,starts_at:start.toISOString(),ends_at:end.toISOString(),appointment_type:type,notes:notes||null,status:'scheduled'});
+    if(error)setError(error.message);else{setOpen(false);load()}
+  }
+  async function changeStatus(id:string,status:string){if(!supabase)return;await supabase.from('appointments').update({status}).eq('id',id).eq('company_id',activeCompany?.id);load()}
+  function shift(days:number){setToday(d=>{const n=new Date(d);n.setDate(n.getDate()+days);return n})}
+  return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={openNew}><Plus size={16}/> Novo atendimento</button>}>
+    <section className="panel">
+      <div className="agenda-toolbar">
+        <button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button>
+        <button className="icon-btn" onClick={()=>shift(-1)} aria-label="Dia anterior"><ArrowLeft size={16}/></button>
+        <button className="icon-btn" onClick={()=>shift(1)} aria-label="Próximo dia"><ChevronRight size={16}/></button>
+        <h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</h2>
+      </div>
+      <div className="calendar-day">
+        {Array.from({length:12},(_,i)=>{const hour=8+i;const ap=dayItems.find(a=>new Date(a.starts_at).getHours()===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{ap?<div className="appointment-card"><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button><button className="back-link danger" onClick={()=>changeStatus(ap.id,'cancelled')}>Cancelar</button></span></div>:<button className="slot-add" onClick={()=>{setDate(dayKey);setTime(String(hour).padStart(2,'0')+':00');setOpen(true)}}>+</button>}</div></div>})}
+      </div>
+    </section>
+    {open&&<div className="modal-backdrop"><form className="modal panel" onSubmit={save}><div className="head"><div><h2>Novo atendimento</h2><p>{new Date(date+'T12:00').toLocaleDateString('pt-BR')}</p></div><button type="button" className="icon-btn" onClick={()=>setOpen(false)}><XCircle size={18}/></button></div><div className="form-grid">
+      <label>Paciente*<select required value={patient} onChange={e=>setPatient(e.target.value)}><option value="">Selecione</option>{patients.map(p=><option key={p.id} value={p.id}>{p.full_name}</option>)}</select></label>
+      <label>Profissional*<select required value={professional} onChange={e=>setProfessional(e.target.value)}><option value="">Selecione</option>{pros.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select></label>
+      <label>Data*<input required type="date" value={date} onChange={e=>setDate(e.target.value)}/></label>
+      <label>Hora*<input required type="time" value={time} onChange={e=>setTime(e.target.value)}/></label>
+      <label>Tipo<select value={type} onChange={e=>setType(e.target.value)}><option>Consulta</option><option>Retorno</option><option>Avaliação</option><option>Online</option></select></label>
+      <label>Duração<select value={duration} onChange={e=>setDuration(e.target.value)}><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
+      <label className="full-field">Observações<textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={3}/></label>
+    </div>{error&&<div className="form-error">{error}</div>}<button className="hero-btn">Agendar</button></form></div>}
+  </TenantPage>
+}function WhatsAppPage(){const{activeCompany}=useTenant();const[item,setItem]=useState<any>(null);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle();setItem(data)}load()},[activeCompany?.id]);return <TenantPage title="WhatsApp" description="Número de WhatsApp da empresa e estado da integração."><section className="panel">{item?<div className="row"><MessageCircle size={20}/><span><b>{item.phone_number||'Número não informado'}</b><small>{item.instance_name||'Instância'} · {item.provider}</small></span><i>{item.status}</i></div>:<div className="empty-box"><MessageCircle size={35}/><h2>Nenhuma integração conectada</h2><p>O número pertence à empresa e poderá ser conectado à Evolution API.</p></div>}</section></TenantPage>}
 
 function AutomationsPage(){const{activeCompany}=useTenant();const[items,setItems]=useState<any[]>([]);useEffect(()=>{async function load(){if(!supabase||!activeCompany)return;const{data}=await supabase.from('automations').select('*').eq('company_id',activeCompany.id).order('name');setItems(data||[])}load()},[activeCompany?.id]);return <TenantPage title="Automações" description="Regras que executam lembretes e mensagens automaticamente." action={<button className="hero-btn"><Plus size={16}/> Nova automação</button>}><section className="panel">{items.length===0?<div className="empty-box"><Bot size={35}/><h2>Nenhuma automação</h2><p>Crie o lembrete de consulta de 24 horas quando o WhatsApp estiver conectado.</p></div>:items.map(a=><div className="row" key={a.id}><Bot size={18}/><span><b>{a.name}</b><small>{a.advance_minutes} min antes · {a.channel}</small></span><i>{a.enabled?'Ativa':'Inativa'}</i></div>)}</section></TenantPage>}
 
