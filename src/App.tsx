@@ -311,7 +311,6 @@ function AgendaPage(){
     if(!supabase||!activeCompany)return;
     setLoading(true);setError('');
     const from=localDateTimeToUtc(dayKey+'T00:00',tz);
-    const next=new Date(from); const p=zonedParts(from,tz); const nextKey=\`${p.year}-${String(p.month).padStart(2,"0")}-${String(p.day).padStart(2,"0")}\`;
     const to=localDateTimeToUtc(dayKey+'T23:59',tz); to.setTime(to.getTime()+60000);
     const[a,b,c]=await Promise.all([
       supabase.from('appointments').select('*,patients(full_name),professionals(name)').eq('company_id',activeCompany.id).gte('starts_at',from.toISOString()).lt('starts_at',to.toISOString()).order('starts_at'),
