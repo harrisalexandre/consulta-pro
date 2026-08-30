@@ -34,3 +34,21 @@ npm run build
 - A criação do usuário é feita pela Edge Function `superadmin-create-company-user`, nunca com service role no frontend.
 - O usuário criado é confirmado no Supabase Auth, recebe um registro em `profiles` e é vinculado à empresa em `company_users`.
 - O login da empresa é feito pela rota `/login`.
+## Plano de implementação
+
+O desenvolvimento segue por fases e uma fase só é considerada concluída quando a funcionalidade estiver funcionando de ponta a ponta: UI → ação → validação → persistência → feedback → refresh → autorização → isolamento do tenant.
+
+### Fases
+1. Fundação: autenticação, sessão persistente, rotas, tenant, RBAC e RLS.
+2. Superadmin: dashboard global, empresas, usuários e permissões.
+3. Onboarding: configuração do consultório e primeiro Owner.
+4. Operação: profissionais, pacientes e agenda com CRUD real.
+5. Comunicação: WhatsApp, templates e histórico de mensagens.
+6. Automações: gatilhos, regras, execução e histórico.
+7. Qualidade: loading, empty/error states, responsividade e acesso direto às rotas.
+8. Segurança: revisão de RLS, autorização e isolamento entre tenants.
+9. Teste de fluxo real ponta a ponta.
+10. README e deploy.
+
+### Regra de desenvolvimento
+Antes de criar uma tela ou rota, verificar se ela já existe. Não considerar uma tela pronta apenas por renderizar: todos os botões e links devem executar ações reais ou indicar explicitamente uma funcionalidade ainda não disponível.
