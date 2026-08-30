@@ -303,14 +303,16 @@ function AgendaPage(){
   const[items,setItems]=useState<any[]>([]); const[patients,setPatients]=useState<any[]>([]); const[pros,setPros]=useState<any[]>([]);
   const[open,setOpen]=useState(false); const[editing,setEditing]=useState<any>(null);
   const[patient,setPatient]=useState('');const[professional,setProfessional]=useState('');const[date,setDate]=useState('');const[time,setTime]=useState('');const[duration,setDuration]=useState('60');const[type,setType]=useState('Consulta');const[notes,setNotes]=useState('');const[status,setStatus]=useState('scheduled');const[error,setError]=useState('');const[loading,setLoading]=useState(true);
-  const localKey=(d:Date)=>{const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,'0');const day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
-  const dayKey=localKey(today);
-  const dayItems=useMemo(()=>items.filter(a=>localKey(new Date(a.starts_at))===dayKey),[items,dayKey]);
+  const tz=activeCompany?.timezone||BR_TIMEZONE;
+  const dayKey=localDateKey(today,tz);
+  const dayItems=useMemo(()=>items.filter(a=>localDateKey(new Date(a.starts_at),tz)===dayKey),[items,dayKey,tz]);
 
   async function load(){
     if(!supabase||!activeCompany)return;
     setLoading(true);setError('');
-    const from=new Date(today);from.setHours(0,0,0,0);const to=new Date(from);to.setDate(to.getDate()+1);
+    const from=localDateTimeToUtc(dayKey+'T00:00',tz);
+    const next=new Date(from); const p=zonedParts(from,tz); const nextKey=\`${p.year}-${String(p.month).padStart(2,"0")}-${String(p.day).padStart(2,"0")}\`;
+    const to=localDateTimeToUtc(dayKey+'T23:59',tz); to.setTime(to.getTime()+60000);
     const[a,b,c]=await Promise.all([
       supabase.from('appointments').select('*,patients(full_name),professionals(name)').eq('company_id',activeCompany.id).gte('starts_at',from.toISOString()).lt('starts_at',to.toISOString()).order('starts_at'),
       supabase.from('patients').select('id,full_name').eq('company_id',activeCompany.id).eq('status','active').order('full_name'),
@@ -321,7 +323,7 @@ function AgendaPage(){
     if(c.error)setError(c.error.message);else setPros(c.data||[]);
     setLoading(false);
   }
-  useEffect(()=>{load()},[activeCompany?.id,dayKey]);
+  useEffect(()=>{async function init(){if(!supabase||!activeCompany)return;const{data,error}=await supabase.rpc('server_now');if(!error&&data){const k=localDateKey(new Date(data),tz);setToday(new Date(k+'T12:00:00'));}await load()}init()},[activeCompany?.id,tz,dayKey]);
 
   function resetForm(slot?:number){
     setEditing(null);setDate(dayKey);setTime(slot===undefined?'09:00':String(slot).padStart(2,'0')+':00');
