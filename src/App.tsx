@@ -345,7 +345,39 @@ function AgendaPage(){
   const viewTitle=view==='month'?today.toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):view==='week'?(()=>{const d=new Date(today);const w=d.getDay()||7;d.setDate(d.getDate()-w+1);const e=new Date(d);e.setDate(e.getDate()+6);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})+' — '+e.toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'})})():today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
   const statusNames:any={scheduled:'Agendado',confirmed:'Confirmado',completed:'Realizado',cancelled:'Cancelado'};
   const appointmentCard=(a:any,compact=false)=><div className={compact?'appointment-card compact':'appointment-card'} key={a.id} onClick={()=>editAppointment(a)}><div><b>{formatZoned(a.starts_at,tz,{hour:'2-digit',minute:'2-digit'})} · {a.patients?.full_name||'Paciente'}</b><small>{a.professionals?.name||'Profissional'} · {a.appointment_type||'Consulta'} · {statusNames[a.status]||a.status}</small></div>{!compact&&<span><button type="button" className="back-link" onClick={e=>{e.stopPropagation();editAppointment(a)}}>Editar</button>{a.status!=='confirmed'&&a.status!=='completed'&&<button type="button" className="back-link" onClick={e=>{e.stopPropagation();changeStatus(a.id,'confirmed')}}>Confirmar</button>}{a.status==='confirmed'&&<button type="button" className="back-link" onClick={e=>{e.stopPropagation();changeStatus(a.id,'completed')}}>Concluir</button>}{a.status!=='cancelled'&&a.status!=='completed'&&<button type="button" className="back-link danger" onClick={e=>{e.stopPropagation();remove(a.id)}}>Cancelar</button>}</span>}</div>;
-  const renderDay=(key:string,compact=false)=><div className={compact?'calendar-day compact':'calendar-day'}>{Array.from({length:13},(_,i)=>{const hour=8+i;const aps=filteredItems.filter(a=>localDateKey(new Date(a.starts_at),tz)===key&&zonedParts(new Date(a.starts_at),tz).hour===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{aps.length?aps.map(a=>appointmentCard(a,compact)):<button type="button" className="slot-add" onClick={()=>{setToday(new Date(key+'T12:00:00'));resetForm(hour)}} aria-label={'Agendar às '+hour+':00'}>+</button>}</div></div>})}</div>;
+  const renderDay=(key:string,compact=false)=>{
+    const dayItems=filteredItems.filter(a=>localDateKey(new Date(a.starts_at),tz)===key).sort((a,b)=>new Date(a.starts_at).getTime()-new Date(b.starts_at).getTime());
+    const lanes:any[]=[];
+    const placed=dayItems.map(a=>{
+      const p=zonedParts(new Date(a.starts_at),tz);
+      const end=new Date(a.ends_at);
+      const ep=zonedParts(end,tz);
+      const startMin=(p.hour-8)*60+p.minute;
+      const endMin=Math.max(startMin+15,(ep.hour-8)*60+ep.minute);
+      let lane=0;
+      while(lanes[lane]!==undefined&&lanes[lane]>startMin)lane++;
+      lanes[lane]=endMin;
+      const overlap=dayItems.filter(x=>{
+        const xp=zonedParts(new Date(x.starts_at),tz), xe=zonedParts(new Date(x.ends_at),tz);
+        const xs=(xp.hour-8)*60+xp.minute, xeMin=(xe.hour-8)*60+xe.minute;
+        return xs<endMin&&xeMin>startMin;
+      }).length;
+      return {a,startMin,endMin,lane,overlap};
+    });
+    const slotHeight=compact?58:72;
+    return <div className={compact?'calendar-day compact':'calendar-day'} style={{'--slot-h':slotHeight+'px'} as React.CSSProperties}>
+      {Array.from({length:13},(_,i)=>{const hour=8+i;return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content"><button type="button" className="slot-add" onClick={()=>{setToday(new Date(key+'T12:00:00'));resetForm(hour)}} aria-label={'Agendar às '+hour+':00'}>+</button></div></div>})}
+      <div className="calendar-events-layer">{placed.map(({a,startMin,endMin,lane,overlap}:any)=>{
+        const top=(startMin/60)*slotHeight, height=Math.max(38,((endMin-startMin)/60)*slotHeight-6);
+        const width=100/Math.max(1,overlap), left=lane*width;
+        return <div key={a.id} className="calendar-event" style={{top,height,left:'calc('+left+'% + 2px)',width:'calc('+width+'% - 6px)'}} onClick={()=>editAppointment(a)}>
+          <b>{formatZoned(a.starts_at,tz,{hour:'2-digit',minute:'2-digit'})} · {a.patients?.full_name||'Paciente'}</b>
+          <small>{a.professionals?.name||'Profissional'} · {a.appointment_type||'Consulta'}</small>
+          <em>{statusNames[a.status]||a.status}</em>
+        </div>
+      })}</div>
+    </div>
+  };
   const weekKeys=useMemo(()=>{const d=new Date(today);const w=d.getDay()||7;d.setDate(d.getDate()-w+1);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(x.getDate()+i);return localDateKey(x,tz)})},[today,tz]);
   const monthKeys=useMemo(()=>{const first=new Date(today.getFullYear(),today.getMonth(),1);const start=new Date(first);const w=start.getDay()||7;start.setDate(start.getDate()-w+1);return Array.from({length:42},(_,i)=>{const x=new Date(start);x.setDate(x.getDate()+i);return localDateKey(x,tz)})},[today,tz]);
   const miniMonthKeys=monthKeys;
