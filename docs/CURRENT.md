@@ -220,3 +220,17 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Visão Lista apresenta os atendimentos do período de forma operacional.
 - Busca/filtros permanecem para a próxima etapa.
 - Commits: `2c735d0` (App) e `03188e9` (CSS).
+
+
+### Agenda v2 — Etapa 3 concluída — 31/08/2026
+
+- Implementada busca por **paciente**.
+- Implementado filtro por **profissional**.
+- Implementado filtro por **status**.
+- Adicionado **Limpar filtros**.
+- Filtros funcionam em Dia, Semana, Mês e Lista.
+- Busca é client-side sobre o período carregado; não altera os dados.
+- Mantida a navegação e as quatro visões da Agenda.
+- A implementação foi reconstruída a partir do estado estável anterior para preservar o SessionGate e evitar regressões da edição anterior.
+- Commit App: 237c5fc7f98c5e425d511015b8126276383a9ba7.
+- Commit CSS: 990a878866a5b1376355c7bc6be924ecefe1eabf.
