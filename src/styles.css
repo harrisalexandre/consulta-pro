@@ -95,3 +95,31 @@
 .modal .head p{margin:4px 0 0;color:#7a847e;font-size:12px}
 .modal select:invalid,.modal input:invalid{border-color:#dce3de}
 .modal select:focus,.modal input:focus,.modal textarea:focus{outline:none;border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.08)}
+
+/* Agenda — responsive states */
+.agenda-panel{overflow:hidden}
+.agenda-loading,.agenda-empty,.agenda-error{min-height:180px;display:grid;place-items:center;text-align:center;padding:24px}
+.agenda-empty p,.agenda-loading p{margin:6px 0;color:#78827c;font-size:13px}
+.agenda-error{color:#8a3d3d}
+.agenda-error button,.agenda-empty button{margin-top:10px}
+@media(max-width:700px){
+  .agenda-toolbar{gap:8px}
+  .agenda-nav{width:100%;display:flex;gap:5px}
+  .agenda-date-picker{flex:1;min-width:0}
+  .agenda-date-picker input{min-width:0;width:100%}
+  .agenda-views{order:4;width:100%;margin-left:0}
+  .agenda-filters{display:grid;grid-template-columns:1fr 1fr}
+  .agenda-filters .agenda-search{grid-column:1/-1;width:100%}
+  .agenda-filters>label{min-width:0}
+  .agenda-filters .clear-filters{grid-column:1/-1;justify-content:center}
+  .agenda-week{min-width:980px}
+  .agenda-month{margin-inline:-12px}
+  .modal-backdrop{padding:10px}
+  .modal{width:min(100%,560px);max-height:calc(100dvh - 20px);overflow:auto}
+}
+@media(max-width:420px){
+  .agenda-filters{grid-template-columns:1fr}
+  .agenda-filters .agenda-search,.agenda-filters .clear-filters{grid-column:auto}
+  .agenda-nav-btn{padding-inline:8px}
+  .agenda-today{padding-inline:10px}
+}
