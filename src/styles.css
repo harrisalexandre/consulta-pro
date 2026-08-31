@@ -183,3 +183,11 @@
 .calendar-day.compact .calendar-event{padding:5px 6px;border-radius:6px}
 .calendar-day.compact .calendar-event b{font-size:9px}
 .calendar-day.compact .calendar-event small,.calendar-day.compact .calendar-event em{font-size:7px}
+
+/* Agenda — filter hierarchy */
+.agenda-filters{align-items:end}
+.agenda-filters>label>span{display:block;margin-bottom:5px;font-size:10px;font-weight:700;color:#78827c}
+.agenda-filters select{min-width:145px}
+.clear-filters{align-self:end;white-space:nowrap}
+@media(max-width:850px){.agenda-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.agenda-filters .agenda-search{grid-column:1/-1}.agenda-filters select{width:100%;min-width:0}}
+@media(max-width:520px){.agenda-filters{grid-template-columns:1fr}.agenda-filters .agenda-search{grid-column:auto}}
