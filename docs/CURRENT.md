@@ -94,3 +94,12 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Causa frontend confirmada no baseline: as rotas protegidas eram filhas de `SessionGate`, mas não estavam envolvidas por `TenantProvider`, enquanto `TenantLayout`, `TenantDashboard` e telas administrativas chamam `useTenant()`. Além disso, `RoleGate` não tinha timeout, cleanup nem tratamento de erro e `TenantContext` não selecionava `timezone` nas queries de empresa.
 - Correção aplicada no commit `4348240a3dec38936a7f8c4ea6ea23454e60c512`: importar e montar `TenantProvider` em torno de todas as rotas protegidas; restaurar timeout/cleanup e tratamento de erro no `RoleGate`; incluir `timezone` nas consultas de `companies` e `company_users`.
 - `npm run build` passou após a correção. O commit ainda precisa ser publicado na branch `main` e validado no Render com login real antes de declarar a Etapa 8 concluída.
+
+
+### Validação pós-deploy da correção — 31/08/2026
+
+O commit `716486e384b33075d8567eb3d93225c93990c0e1` foi publicado na branch `main` e o Render marcou o deploy `dep-daag6l8ae00c73bd4kb0` como `Live`; o build passou com `tsc -b && vite build`. Após o deploy, o acesso a `/dashboard` deixou de ficar preso em `Carregando acesso...` e passou a renderizar corretamente o estado funcional `Nenhuma empresa vinculada`.
+
+Esse resultado confirma que as rotas e o fluxo de autenticação foram destravados. O bloqueio restante não é ausência de páginas: é dado de autorização/tenant. O usuário autenticado não aparece associado a uma empresa via `company_users`, então `TenantContext` retorna `activeCompany = null` e `TenantLayout` não exibe o menu de Agenda, Pacientes, Profissionais, WhatsApp, Automações e Configurações. A associação deve ser confirmada/criada no banco para o usuário correto; não foi criada automaticamente nesta auditoria.
+
+As secrets customizadas do Supabase continuam inexistentes (`No custom secrets created`), portanto o WAHA ainda não está pronto para teste real de conexão ou envio. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` estão presentes no Render. O próximo teste end-to-end, após o vínculo `company_users`, deve navegar por todas as rotas tenant e exercitar CRUD sem inserir dados de teste automaticamente.
