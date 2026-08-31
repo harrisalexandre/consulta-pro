@@ -284,3 +284,18 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Corrigidos dois erros TypeScript que impediam o build: import do ícone `Search` e callback da lista de atendimentos.
 - Commits: `bdd1d28` (Agenda) e `6e0cad7` (estilos).
 - A referência enviada é inspiração de composição, não cópia literal: priorizamos a identidade já existente do Consulta Pro.
+
+
+### Agenda v3 — Etapa 7 concluída — 31/08/2026
+
+- Implementado shell visual inspirado na referência enviada.
+- Visão Mês ganhou **mini-calendário lateral**.
+- Mini-calendário permite trocar o dia diretamente.
+- Dias com atendimentos recebem indicador visual.
+- Adicionado CTA `Novo atendimento` na lateral.
+- Resumo do dia exibe quantidade de atendimentos.
+- Navegação de mês disponível na lateral.
+- Layout se reorganiza para mobile.
+- Mantida a identidade visual do Consulta Pro em vez de copiar a referência literalmente.
+- Commit App: `7f02a1394348921bc30f3338fb3e9706b40c71b5`.
+- Commit CSS: `c4378a046cd68efad3cd33d95330194443981b12`.
