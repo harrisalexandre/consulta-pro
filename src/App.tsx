@@ -356,7 +356,18 @@ function AgendaPage(){
   function shift(days:number){setToday(d=>{const n=new Date(d);n.setDate(n.getDate()+days);return n})}
   return <TenantPage title="Agenda" description="Calendário de atendimentos do consultório." action={<button className="hero-btn" onClick={()=>resetForm()}><Plus size={16}/> Novo atendimento</button>}>
     <section className="panel">
-      <div className="agenda-toolbar"><button className="back-link" onClick={()=>setToday(new Date())}>Hoje</button><button className="icon-btn" onClick={()=>shift(-1)} title="Dia anterior"><ArrowLeft size={16}/></button><button className="icon-btn" onClick={()=>shift(1)} title="Próximo dia"><ChevronRight size={16}/></button><h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</h2></div>
+      <div className="agenda-toolbar">
+        <div className="agenda-nav">
+          <button type="button" className="agenda-today" onClick={()=>setToday(new Date())}>Hoje</button>
+          <button type="button" className="agenda-nav-btn" onClick={()=>shift(-1)} title="Dia anterior" aria-label="Dia anterior"><ArrowLeft size={18}/></button>
+          <button type="button" className="agenda-nav-btn" onClick={()=>shift(1)} title="Próximo dia" aria-label="Próximo dia"><ChevronRight size={18}/></button>
+          <label className="agenda-date-picker" title="Selecionar data">
+            <CalendarDays size={17}/>
+            <input type="date" value={dayKey} onChange={e=>e.target.value&&setToday(new Date(e.target.value+'T12:00:00'))} aria-label="Selecionar data"/>
+          </label>
+        </div>
+        <h2>{today.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</h2>
+      </div>
       {error&&<div className="form-error">{error}</div>}
       {loading?<div className="empty-box">Carregando agenda...</div>:<div className="calendar-day">{Array.from({length:13},(_,i)=>{const hour=8+i;const aps=dayItems.filter(a=>zonedParts(new Date(a.starts_at),tz).hour===hour);return <div className="calendar-slot" key={hour}><time>{String(hour).padStart(2,'0')}:00</time><div className="slot-content">{aps.length?aps.map(ap=><div className="appointment-card" key={ap.id}><div><b>{new Date(ap.starts_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · {ap.patients?.full_name||'Paciente'}</b><small>{ap.professionals?.name||'Profissional'} · {ap.appointment_type||'Consulta'} · {ap.status}</small></div><span><button className="back-link" onClick={()=>editAppointment(ap)}>Editar</button>{ap.status!=='confirmed'&&ap.status!=='completed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'confirmed')}>Confirmar</button>}{ap.status==='confirmed'&&<button className="back-link" onClick={()=>changeStatus(ap.id,'completed')}>Concluir</button>}{ap.status!=='cancelled'&&ap.status!=='completed'&&<button className="back-link danger" onClick={()=>remove(ap.id)}>Cancelar</button>}</span></div>):<button className="slot-add" onClick={()=>resetForm(hour)} aria-label={'Agendar às '+hour+':00'}>+</button>}</div></div>})}</div>}
     </section>
