@@ -313,3 +313,15 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Ajustado o alinhamento da camada de eventos compactos.
 - Commit App: `be72663ec8917cf34005c291211e17a10f46e5db`.
 - Commit CSS: `f515db3702adfbed0640f25d6c08705b1be308fd`.
+
+
+### Agenda v3 — Etapa 9 concluída — 31/08/2026
+
+- Filtros consolidados: **paciente, profissional, status e tipo**.
+- Busca de paciente permanece instantânea sobre os atendimentos carregados.
+- `Limpar filtros` agora remove todos os critérios ativos.
+- Botão `Hoje` retorna para a data atual e abre diretamente a visão Dia.
+- Filtros reorganizados visualmente e responsivos para desktop/mobile.
+- CURRENT atualizado após implementação.
+- Commit App: `40e2424`.
+- Commit CSS: `f028739`.
