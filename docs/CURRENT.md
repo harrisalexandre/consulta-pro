@@ -299,3 +299,17 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Mantida a identidade visual do Consulta Pro em vez de copiar a referência literalmente.
 - Commit App: `7f02a1394348921bc30f3338fb3e9706b40c71b5`.
 - Commit CSS: `c4378a046cd68efad3cd33d95330194443981b12`.
+
+
+### Agenda v3 — Etapa 8 concluída — 31/08/2026
+
+- Visões **Dia** e **Semana** agora posicionam os atendimentos pelo horário real, incluindo minutos.
+- A altura do atendimento representa visualmente sua **duração**.
+- Atendimentos que coincidem no mesmo período são distribuídos em colunas para evitar sobreposição de conteúdo.
+- Eventos continuam clicáveis para edição.
+- Status permanece visível no próprio bloco.
+- Na visão Semana, os blocos ficam compactos para manter a leitura das sete colunas.
+- O botão `+` continua disponível nos horários livres para criação rápida.
+- Ajustado o alinhamento da camada de eventos compactos.
+- Commit App: `be72663ec8917cf34005c291211e17a10f46e5db`.
+- Commit CSS: `f515db3702adfbed0640f25d6c08705b1be308fd`.
