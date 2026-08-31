@@ -6,7 +6,7 @@ import {
   Plus, Settings, ShieldCheck, UserRound, Users, Wifi, XCircle
 } from 'lucide-react'
 import { supabase } from './lib/supabase'
-import { useTenant } from './contexts/TenantContext'
+import { TenantProvider, useTenant } from './contexts/TenantContext'
 import Landing from './Landing'
 
 const BR_TIMEZONE='America/Sao_Paulo'
@@ -75,24 +75,29 @@ function SessionGate() {
 
 
 function RoleGate({admin}:{admin:boolean}){
-  const [state,setState]=useState<'loading'|'allowed'|'denied'>('loading')
-
+  const[state,setState]=useState<'loading'|'allowed'|'denied'|'error'>('loading')
   useEffect(()=>{
     let alive=true
+    let settled=false
     async function load(){
-      if(!supabase){if(alive)setState('denied');return}
-      const{data:{user}}=await supabase!.auth.getUser()
-      if(!user){if(alive)setState('denied');return}
-      const{data:profile}=await supabase!.from('profiles').select('is_superadmin').eq('id',user.id).maybeSingle()
-      const jwtAdmin=user.app_metadata?.role==='superadmin'||user.app_metadata?.is_superadmin===true
-      const isAdmin=Boolean(profile?.is_superadmin||jwtAdmin)
-      if(alive)setState(isAdmin===admin?'allowed':'denied')
+      try{
+        const client=getSupabase()
+        const{data:{user},error:userError}=await client.auth.getUser()
+        if(userError||!user){if(alive)setState('error');return}
+        const{data:profile,error:profileError}=await client.from('profiles').select('is_superadmin').eq('id',user.id).maybeSingle()
+        if(profileError){console.error('Erro ao carregar perfil:',profileError);if(alive)setState('error');return}
+        const jwtAdmin=user.app_metadata?.role==='superadmin'||user.app_metadata?.is_superadmin===true
+        const isAdmin=Boolean(profile?.is_superadmin||jwtAdmin)
+        if(alive)setState(isAdmin===admin?'allowed':'denied')
+      }catch(error){console.error('Erro ao validar acesso:',error);if(alive)setState('error')}
+      finally{settled=true}
     }
     load()
-    return()=>{alive=false}
+    const timer=window.setTimeout(()=>{if(alive&&!settled)setState('error')},8000)
+    return()=>{alive=false;window.clearTimeout(timer)}
   },[admin])
-
   if(state==='loading')return <div className="auth"><div className="panel">Carregando acesso...</div></div>
+  if(state==='error')return <Navigate to="/login" replace/>
   if(state==='denied')return <Navigate to={admin?'/dashboard':'/admin/dashboard'} replace/>
   return <Outlet/>
 }
@@ -494,6 +499,7 @@ export default function App(){
     <Route path="/login" element={<Login/>}/>
 
     <Route element={<SessionGate/>}>
+      <Route element={<TenantProvider><Outlet/></TenantProvider>}>
       <Route element={<RoleGate admin={true}/>}>
         <Route element={<AdminLayout/>}>
         <Route path="admin/dashboard" element={<AdminDashboard/>}/>
@@ -530,6 +536,7 @@ export default function App(){
         </Route>
       </Route>
     </Route>
+      </Route>
 
     <Route path="/app" element={<Navigate to="/dashboard" replace/>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>

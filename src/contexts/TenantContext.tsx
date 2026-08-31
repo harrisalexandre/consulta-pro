@@ -31,11 +31,11 @@ export function TenantProvider({children}:{children:ReactNode}){
 
       let list:Company[]=[]
       if(isSuperadmin){
-        const{data,error}=await Promise.race([supabase.from('companies').select('id,name,legal_name,cnpj,phone,email').order('name'),timeout])
+        const{data,error}=await Promise.race([supabase.from('companies').select('id,name,legal_name,cnpj,phone,email,timezone').order('name'),timeout])
         if(error)throw error
         list=(data||[]) as Company[]
       }else{
-        const{data,error}=await Promise.race([supabase.from('company_users').select('company_id, companies(id,name,legal_name,cnpj,phone,email)').eq('user_id',user.id),timeout])
+        const{data,error}=await Promise.race([supabase.from('company_users').select('company_id, companies(id,name,legal_name,cnpj,phone,email,timezone)').eq('user_id',user.id),timeout])
         if(error)throw error
         list=(data||[]).map((row:any)=>row.companies).filter(Boolean) as Company[]
       }
