@@ -325,3 +325,13 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - CURRENT atualizado após implementação.
 - Commit App: `40e2424`.
 - Commit CSS: `f028739`.
+
+
+### Agenda v3 — Etapa 10 concluída — 31/08/2026
+
+- Adicionados indicadores operacionais do dia: total, agendados, confirmados e realizados.
+- Indicadores são calculados a partir dos atendimentos do dia selecionado.
+- Cards responsivos: 4 colunas no desktop e 2 no mobile.
+- Mantida a leitura rápida sem transformar a Agenda em dashboard pesado.
+- Commit App: `147bb07`.
+- Commit CSS: `b022a3a`.
