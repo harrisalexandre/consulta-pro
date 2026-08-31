@@ -82,3 +82,15 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Templates, automações, dispatches e integrações WhatsApp estão vazios no banco atual; portanto o CRUD da UI precisa ser exercitado com dados reais antes de declarar essas partes validadas.
 - Frontend restaurado está novamente com as implementações completas: `PatientsPage`, `ProfessionalsPage`, `AgendaPage`, `WhatsAppPage`, `AutomationsPage`, `TenantSettingsPage` e `manage-waha-session`.
 - **Próximo:** validar build do commit atual no Render; em seguida testar CRUD de paciente/profissional/agenda com a empresa existente e então WhatsApp/templates/automações. Não criar dados de teste automaticamente.
+
+
+### Auditoria Etapa 8 — divergência de checkout e bloqueio autenticado — 31/08/2026
+
+- O Render está conectado à branch `main` no commit `08d7baccc020ce6e89e7addcd6bfb55490f9e2da`, não ao checkout local antigo que estava em `53d51c2`. O deploy `dep-daaetfn10e5c73bq1f9g` ficou Live e compilou com `tsc -b && vite build`.
+- O `origin/main` atualizado contém as telas e rotas completas: `PatientsPage`, `ProfessionalsPage`, `AgendaPage`, `WhatsAppPage`, `AutomationsPage`, `TenantSettingsPage` e `/agenda`, `/pacientes`, `/profissionais`, `/whatsapp`, `/automacoes`, `/configuracoes`.
+- A infraestrutura real do Supabase foi confirmada: 11 tabelas públicas, 5 Edge Functions publicadas e a migração `waha_connection_state_stage8`. O projeto está saudável e não possui repositório GitHub conectado ao Supabase.
+- A seção de secrets do Supabase informa `No custom secrets created`; `WAHA_URL` e `WAHA_API_KEY` continuam pendentes, portanto não é possível validar conexão/envio real pelo WAHA.
+- A abertura autenticada de `/dashboard` e `/agenda` no deploy `08d7bac` foi reproduzida com bloqueio em `Carregando acesso...`/tela sem conteúdo.
+- Causa frontend confirmada no baseline: as rotas protegidas eram filhas de `SessionGate`, mas não estavam envolvidas por `TenantProvider`, enquanto `TenantLayout`, `TenantDashboard` e telas administrativas chamam `useTenant()`. Além disso, `RoleGate` não tinha timeout, cleanup nem tratamento de erro e `TenantContext` não selecionava `timezone` nas queries de empresa.
+- Correção aplicada no commit `4348240a3dec38936a7f8c4ea6ea23454e60c512`: importar e montar `TenantProvider` em torno de todas as rotas protegidas; restaurar timeout/cleanup e tratamento de erro no `RoleGate`; incluir `timezone` nas consultas de `companies` e `company_users`.
+- `npm run build` passou após a correção. O commit ainda precisa ser publicado na branch `main` e validado no Render com login real antes de declarar a Etapa 8 concluída.
