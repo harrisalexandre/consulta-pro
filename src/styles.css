@@ -191,3 +191,11 @@
 .clear-filters{align-self:end;white-space:nowrap}
 @media(max-width:850px){.agenda-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.agenda-filters .agenda-search{grid-column:1/-1}.agenda-filters select{width:100%;min-width:0}}
 @media(max-width:520px){.agenda-filters{grid-template-columns:1fr}.agenda-filters .agenda-search{grid-column:auto}}
+
+/* Agenda — daily operational indicators */
+.agenda-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.agenda-stat{border:1px solid #e5ebe7;border-radius:10px;padding:11px 13px;background:#fff;display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:8px}
+.agenda-stat span{font-size:10px;font-weight:700;color:#78827c}
+.agenda-stat strong{font-size:22px;line-height:1;color:#26312c}
+.agenda-stat small{grid-column:1/-1;color:#929a95;font-size:9px;margin-top:3px}
+@media(max-width:650px){.agenda-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
