@@ -179,7 +179,7 @@
 .calendar-event.status-confirmed{background:#edf5fa;border-left-color:#47738a}
 .calendar-event.status-completed{background:#f0f2f0;border-left-color:#7b847f}
 .calendar-event.status-cancelled{background:#f9eeee;border-left-color:#a34b4b;color:#7c4d4d}
-.calendar-day.compact .calendar-events-layer{left:52px}
+.calendar-day.compact .calendar-slot{grid-template-columns:52px 1fr}.calendar-day.compact .calendar-events-layer{left:52px}
 .calendar-day.compact .calendar-event{padding:5px 6px;border-radius:6px}
 .calendar-day.compact .calendar-event b{font-size:9px}
 .calendar-day.compact .calendar-event small,.calendar-day.compact .calendar-event em{font-size:7px}
