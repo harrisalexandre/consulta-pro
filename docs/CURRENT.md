@@ -103,3 +103,27 @@ O commit `716486e384b33075d8567eb3d93225c93990c0e1` foi publicado na branch `mai
 Esse resultado confirma que as rotas e o fluxo de autenticação foram destravados. O bloqueio restante não é ausência de páginas: é dado de autorização/tenant. O usuário autenticado não aparece associado a uma empresa via `company_users`, então `TenantContext` retorna `activeCompany = null` e `TenantLayout` não exibe o menu de Agenda, Pacientes, Profissionais, WhatsApp, Automações e Configurações. A associação deve ser confirmada/criada no banco para o usuário correto; não foi criada automaticamente nesta auditoria.
 
 As secrets customizadas do Supabase continuam inexistentes (`No custom secrets created`), portanto o WAHA ainda não está pronto para teste real de conexão ou envio. As variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` estão presentes no Render. O próximo teste end-to-end, após o vínculo `company_users`, deve navegar por todas as rotas tenant e exercitar CRUD sem inserir dados de teste automaticamente.
+
+
+### Migração WhatsApp: WAHA → Evolution API — 31/08/2026
+
+- Confirmada a arquitetura do Karate ERP: o WhatsApp operacional utiliza **Evolution API**.
+- A implementação do Consulta Pro foi ajustada para seguir o mesmo provider.
+- Criada Edge Function `manage-evolution-session` com autenticação JWT + Owner/Admin.
+- Criada Edge Function `receive-evolution-webhook` para `CONNECTION_UPDATE` e `MESSAGES_UPSERT`.
+- Atualizada `process-automation-dispatches` para enviar por Evolution API em `/message/sendText/{instance}`.
+- O worker passou a usar o campo real `automations.message_template`; o código anterior referenciava `message_template_id/content`, incompatível com o schema atual.
+- Provider padrão de `whatsapp_integrations` alterado de `waha` para `evolution`.
+- Frontend `/whatsapp` atualizado para chamar `manage-evolution-session`.
+- Commit frontend: `7e7bad9ca28855928a7bc7ad187aad104824af7d`.
+- Edge Function `process-automation-dispatches` está na versão 2.
+- **Pendente:** configurar no ambiente Supabase as secrets `EVOLUTION_API_URL` e `EVOLUTION_API_KEY`.
+- Enquanto essas secrets não existirem, a conexão/QR e o envio real não podem ser validados.
+
+### Próximo passo
+1. Configurar `EVOLUTION_API_URL` e `EVOLUTION_API_KEY`.
+2. Abrir `/whatsapp` e conectar a instância.
+3. Escanear QR.
+4. Confirmar `connected` no banco.
+5. Criar paciente/template/automação/agendamento de teste.
+6. Validar dispatch → Evolution → WhatsApp → histórico.
