@@ -138,3 +138,61 @@ As secrets customizadas do Supabase continuam inexistentes (`No custom secrets c
 - Modal recebeu padding e hierarquia visual mais consistente.
 - Adicionado comportamento responsivo: formulário passa para uma coluna em telas menores.
 - Commit CSS: `acbd910f68a734236cc0b6a55eec31df99531d8f`.
+
+
+## Plano de implementação — Agenda v2
+
+Objetivo: transformar a Agenda em uma agenda operacional, com visão Dia/Semana/Mês/Lista, filtros por paciente/profissional/status e criação rápida de atendimento.
+
+### 1. Estrutura e navegação
+- Corrigir o header da agenda e remover o botão/controle quebrado.
+- Adicionar ação principal “+ Novo atendimento”.
+- Implementar navegação Hoje / anterior / próximo / seletor de data.
+- Manter o fuso da empresa como fonte para datas e horários.
+
+### 2. Visões da agenda
+- **Dia:** grade horária detalhada, foco no atendimento individual.
+- **Semana:** colunas por dia com atendimentos posicionados por horário.
+- **Mês:** calendário mensal com quantidade/resumo dos atendimentos.
+- **Lista:** tabela/linha do tempo para busca e operação rápida.
+- Persistir a última visão escolhida localmente.
+
+### 3. Filtros e busca
+- Busca por paciente.
+- Filtro por profissional.
+- Filtro por status.
+- Botão “Limpar filtros”.
+- Filtros devem afetar todas as visões sem alterar os dados.
+
+### 4. Interação dos horários
+- Clique no “+” abre o novo atendimento já com data/hora preenchidas.
+- Clique no atendimento abre detalhes/edição.
+- Menu contextual para editar, cancelar/concluir e demais ações já suportadas pelo sistema.
+- Respeitar duração real do atendimento na grade.
+
+### 5. Novo atendimento
+- Reorganizar o modal já corrigido visualmente.
+- Paciente e profissional obrigatórios.
+- Data/hora, tipo, duração, status e observações.
+- Validar conflito de horário antes de salvar.
+- Após salvar, atualizar a agenda sem reload.
+
+### 6. Estados e responsividade
+- Loading, vazio e erro consistentes.
+- Desktop com grade completa.
+- Tablet/mobile com navegação simplificada e lista/agenda diária priorizada.
+- Evitar overflow horizontal e controles nativos desalinhados.
+
+### 7. Validação final
+- Testar CRUD de atendimento.
+- Testar filtros combinados.
+- Testar troca Dia/Semana/Mês/Lista.
+- Testar mudança de data.
+- Testar conflito de horários.
+- Testar timezone da empresa.
+- Rodar TypeScript/Vite build antes do deploy.
+
+### Ordem de execução
+**1 → 2 → 3 → 4 → 5 → 6 → 7**
+
+Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A prioridade é deixar a Agenda operacional e visualmente consistente.
