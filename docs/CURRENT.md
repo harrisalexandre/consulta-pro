@@ -127,3 +127,14 @@ As secrets customizadas do Supabase continuam inexistentes (`No custom secrets c
 4. Confirmar `connected` no banco.
 5. Criar paciente/template/automação/agendamento de teste.
 6. Validar dispatch → Evolution → WhatsApp → histórico.
+
+
+### Revisão visual — Agenda / Novo atendimento — 31/08/2026
+
+- Identificado bug visual no formulário do modal: `.form-grid` não possuía layout CSS, fazendo os campos perderem a organização em colunas.
+- Corrigidos inputs/selects/textarea para ocupar corretamente a largura do campo.
+- Corrigido textarea de Observações, que estava com largura mínima/nativa e desalinhado.
+- Padronizados espaçamento, labels, foco e altura dos campos.
+- Modal recebeu padding e hierarquia visual mais consistente.
+- Adicionado comportamento responsivo: formulário passa para uma coluna em telas menores.
+- Commit CSS: `acbd910f68a734236cc0b6a55eec31df99531d8f`.
