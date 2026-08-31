@@ -196,3 +196,14 @@ Objetivo: transformar a Agenda em uma agenda operacional, com visão Dia/Semana/
 **1 → 2 → 3 → 4 → 5 → 6 → 7**
 
 Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A prioridade é deixar a Agenda operacional e visualmente consistente.
+
+
+### Agenda v2 — Etapa 1 concluída — 31/08/2026
+
+- Refeito o toolbar de navegação da Agenda.
+- Corrigido o botão `Hoje`, removendo o estilo genérico que aparecia desalinhado.
+- Adicionados controles dedicados para dia anterior/próximo dia.
+- Adicionado seletor de data por calendário, mantendo o timezone da empresa no processamento da agenda.
+- Ajustada responsividade dos controles.
+- Commit App: `3b431c85d999f54a31f2f7cbfaa9c13a45386a41`.
+- Commit CSS: `4457acd3ec59e8903438c9c20d2864af5f9c30c7`.
