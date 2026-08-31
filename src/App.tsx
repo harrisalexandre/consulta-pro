@@ -398,7 +398,7 @@ function WhatsAppPage(){
   async function session(action:string){
     if(!supabase)return;
     setBusy(true);setError('');setSuccess('');
-    const{data,error}=await supabase!.functions.invoke('manage-waha-session',{body:{action}});
+    const{data,error}=await supabase!.functions.invoke('manage-evolution-session',{body:{action}});
     if(error){setError(error.message||'Não foi possível comunicar com o WhatsApp.');setBusy(false);return}
     if(data?.error){setError(data.error);setBusy(false);return}
     if(data?.qr){
