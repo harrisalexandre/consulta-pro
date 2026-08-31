@@ -93,3 +93,13 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Centralizado o narrowing através de `getSupabase()`, eliminando esses acessos diretos do fluxo de negócio.
 - Commit: `073fd163e727ba8c889431282765ebc34bc14543`.
 - **Próximo:** aguardar o Render compilar este commit. Só após `tsc -b && vite build` verde validar a landing pública e as rotas.
+
+
+### Restauração da aplicação — 31/08/2026
+- Revisão do histórico confirmou que as telas tenant completas existiam no commit `d8f3ed2c3c073a225eb94f9d4e56cb31741857d5`.
+- Entre esse commit e o estado atual, `src/App.tsx` foi reduzido de ~27,8k para ~13,5k caracteres, removendo `PatientsPage`, `ProfessionalsPage`, `AgendaPage`, `WhatsAppPage`, `AutomationsPage` e `TenantDashboard`.
+- Restaurado o `App.tsx` completo desse último estado que continha as telas, preservando `Landing` e adicionando a arquitetura correta de rotas: SessionGate → TenantProvider → RoleGate → layout.
+- Restauradas as rotas tenant: dashboard, agenda, pacientes, profissionais, WhatsApp, automações e configurações.
+- Restauradas também as rotas administrativas já existentes e placeholders apenas onde não havia implementação completa.
+- Commit: `a8135064a495d47ee75e0ca792f77672574c54fd`.
+- **Próximo:** validar build no Render e, se verde, testar login → tenant → dashboard → pacientes → profissionais → agenda → WhatsApp → automações.
