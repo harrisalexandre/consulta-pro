@@ -234,3 +234,15 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - A implementação foi reconstruída a partir do estado estável anterior para preservar o SessionGate e evitar regressões da edição anterior.
 - Commit App: 237c5fc7f98c5e425d511015b8126276383a9ba7.
 - Commit CSS: 990a878866a5b1376355c7bc6be924ecefe1eabf.
+
+
+### Agenda v2 — Etapa 4 concluída — 31/08/2026
+
+- Atendimento agora é clicável para abrir edição.
+- Ações de confirmar, concluir e cancelar continuam disponíveis sem disparar a edição por acidente.
+- Cards da visão Semana ficam compactos para aproveitar a coluna.
+- Status exibido em português.
+- Melhorados hover, cursor e feedback visual dos cards.
+- Duração já é calculada no formulário e o próximo refinamento da grade poderá posicionar/ocupar visualmente os minutos.
+- Commit App: 3dfa77f378981ff9ceabe3a2363559fae9700fc3.
+- Commit CSS: b0ee0b7d71dda6a326fb4c42895f16ac4b87aabf.
