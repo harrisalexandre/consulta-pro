@@ -134,4 +134,33 @@ function TenantLayout(){
 
 function TenantDashboard(){const{activeCompany}=useTenant();return <div className="content"><div className="head"><div><h1>Dashboard</h1><p>{activeCompany?.name}</p></div><button className="hero-btn"><Plus size={16}/> Novo atendimento</button></div><div className="metrics"><Metric label="Consultas hoje" value="0"/><Metric label="Confirmadas" value="0"/><Metric label="Pendentes" value="0"/><Metric label="Realizadas" value="0"/></div><div className="grid"><section className="panel"><h2>Próximos atendimentos</h2><Empty text="Os atendimentos reais aparecerão aqui." /></section><section className="panel"><h2>WhatsApp</h2><div className="wa"><MessageCircle size={20}/><span><b>Nenhuma integração conectada</b><small>Configure o número da empresa.</small></span></div></section></div></div>}
 
-export default function App(){return <Routes><Route path="/" element={<Landing/>}/><Route path="/login" element={<Login/>}/><Route path="/app/*" element={<SessionGate/>}/><Route path="/dashboard" element={<SessionGate/>}/><Route path="/admin/*" element={<SessionGate/>}/><Route path="/empresas/*" element={<SessionGate/>}/><Route path="/usuarios" element={<SessionGate/>}/><Route path="/permissoes" element={<SessionGate/>}/><Route path="/mensagens" element={<SessionGate/>}/><Route path="/atividade" element={<SessionGate/>}/><Route path="*" element={<Navigate to="/" replace/>}/></Routes>}
+export default function App(){return <Routes>
+  <Route path="/" element={<Landing/>}/>
+  <Route path="/login" element={<Login/>}/>
+
+  <Route element={<SessionGate/>}>
+    <Route element={<TenantProvider/>}>
+      <Route path="/admin/*" element={<RoleGate admin={true}/>}>
+        <Route element={<AdminLayout/>}>
+          <Route path="dashboard" element={<AdminDashboard/>}/>
+          <Route path="empresas" element={<AdminCompanies/>}/>
+          <Route path="empresas/nova" element={<NewCompany/>}/>
+          <Route path="empresas/:id" element={<CompanyDetail/>}/>
+          <Route path="permissoes" element={<Permissions/>}/>
+          <Route path="mensagens" element={<AdminMessages/>}/>
+          <Route path="usuarios" element={<AdminPlaceholder title="Usuários" description="Gestão dos usuários da plataforma." icon={Users}/>}/>
+          <Route path="whatsapp" element={<AdminPlaceholder title="WhatsApp" description="Visão global das integrações WhatsApp." icon={MessageCircle}/>}/>
+          <Route path="automacoes" element={<AdminPlaceholder title="Automações" description="Visão global das automações." icon={Bot}/>}/>
+          <Route path="atividade" element={<AdminPlaceholder title="Atividade" description="Atividade global da plataforma." icon={Activity}/>}/>
+          <Route path="configuracoes" element={<AdminPlaceholder title="Configurações" description="Configurações globais da plataforma." icon={Settings}/>}/>
+        </Route>
+      </Route>
+
+      <Route path="/*" element={<RoleGate admin={false}/>}>
+        <Route element={<TenantLayout/>}/>
+      </Route>
+    </Route>
+  </Route>
+
+  <Route path="*" element={<Navigate to="/" replace/>}/>
+</Routes>}
