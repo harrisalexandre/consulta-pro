@@ -259,3 +259,16 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Cabeçalho do modal agora mostra data, horário e duração selecionados.
 - Botão do formulário explicitamente definido como submit.
 - Commit App: bb? 
+
+
+### Agenda v2 — Etapa 6 concluída — 31/08/2026
+
+- Refinado comportamento responsivo da Agenda em mobile.
+- Toolbar, seletor de visão e filtros reorganizam sem estourar a tela.
+- Semana mantém scroll horizontal controlado em telas pequenas.
+- Mês mantém grade navegável sem quebrar o layout.
+- Modal de atendimento respeita viewport móvel e permite rolagem interna.
+- Melhorado estado de carregamento com mensagem contextual.
+- Estados de lista vazia e filtros sem resultado permanecem explícitos.
+- Commit App: 36c79dc33ce966352c30ca49c8956e40716c1225.
+- Commit CSS: e4d07d18618a3de25cdb4215664021d637c5a814.
