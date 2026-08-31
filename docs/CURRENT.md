@@ -272,3 +272,15 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Estados de lista vazia e filtros sem resultado permanecem explícitos.
 - Commit App: 36c79dc33ce966352c30ca49c8956e40716c1225.
 - Commit CSS: e4d07d18618a3de25cdb4215664021d637c5a814.
+
+
+### Agenda v3 — início da virada visual — 31/08/2026
+
+- A referência visual enviada pelo usuário foi incorporada como direção: **calendário mensal como visão principal**, eventos visíveis dentro das células e navegação clara.
+- A Agenda agora abre na visão **Mês**, em vez de Dia.
+- Cada dia mostra os atendimentos diretamente na grade, com horário, paciente e indicador de quantidade.
+- Eventos recebem tratamento visual por status e podem ser clicados para edição.
+- Mantidas as visões Dia, Semana e Lista para detalhamento.
+- Corrigidos dois erros TypeScript que impediam o build: import do ícone `Search` e callback da lista de atendimentos.
+- Commits: `bdd1d28` (Agenda) e `6e0cad7` (estilos).
+- A referência enviada é inspiração de composição, não cópia literal: priorizamos a identidade já existente do Consulta Pro.
