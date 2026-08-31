@@ -81,3 +81,11 @@
 .agenda-search:focus-within,.agenda-filters select:focus{border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.08)}
 .clear-filters{height:40px;display:inline-flex;align-items:center}
 @media(max-width:650px){.agenda-filters{align-items:stretch}.agenda-search{width:100%}.agenda-filters>label{flex:1;min-width:0}.agenda-filters>label:not(.agenda-search){min-width:130px}.clear-filters{align-self:center}}
+
+/* Appointment interaction */
+.appointment-card{cursor:pointer;position:relative}
+.appointment-card:hover{box-shadow:0 2px 8px rgba(32,38,34,.1);border-color:#c8d5cd}
+.appointment-card.compact{margin:3px;padding:7px;min-height:0}
+.appointment-card.compact b{font-size:10px;line-height:1.25}
+.appointment-card.compact small{font-size:9px}
+.appointment-card>span{display:flex;gap:5px;flex-wrap:wrap}
