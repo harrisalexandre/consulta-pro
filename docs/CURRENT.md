@@ -246,3 +246,16 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Duração já é calculada no formulário e o próximo refinamento da grade poderá posicionar/ocupar visualmente os minutos.
 - Commit App: 3dfa77f378981ff9ceabe3a2363559fae9700fc3.
 - Commit CSS: b0ee0b7d71dda6a326fb4c42895f16ac4b87aabf.
+
+
+### Agenda v2 — Etapa 5 concluída — 31/08/2026
+
+- Formulário de atendimento reforçado com validações de paciente, profissional, data e horário.
+- Duração validada entre 15 minutos e 8 horas.
+- Bloqueada criação de novos atendimentos em horário passado.
+- Bloqueado atendimento atravessando a virada do dia.
+- Mantida validação de conflito por profissional, ignorando o próprio registro durante edição.
+- Mensagens de erro ficaram mais seguras e orientadas ao usuário, sem expor detalhes internos do banco.
+- Cabeçalho do modal agora mostra data, horário e duração selecionados.
+- Botão do formulário explicitamente definido como submit.
+- Commit App: bb? 
