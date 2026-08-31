@@ -89,3 +89,9 @@
 .appointment-card.compact b{font-size:10px;line-height:1.25}
 .appointment-card.compact small{font-size:9px}
 .appointment-card>span{display:flex;gap:5px;flex-wrap:wrap}
+
+/* Appointment form polish */
+.modal form>.hero-btn{width:100%;justify-content:center;margin-top:8px}
+.modal .head p{margin:4px 0 0;color:#7a847e;font-size:12px}
+.modal select:invalid,.modal input:invalid{border-color:#dce3de}
+.modal select:focus,.modal input:focus,.modal textarea:focus{outline:none;border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.08)}
