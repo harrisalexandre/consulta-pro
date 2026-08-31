@@ -72,3 +72,13 @@ Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo 
 - Advisors de segurança ainda reportam funções `SECURITY DEFINER` expostas e proteção contra senhas vazadas desabilitada. Não alteradas nesta revisão porque algumas funções fazem parte dos contratos atuais de autorização/tempo e exigem validação específica antes de revogar execução.
 - Novo baseline restaurado no frontend: `d9aeda53fc5c620fc7b07fa31cc30240c610c1ae` + ajuste de contexto `652cdb448c582d8085bfa1421b7226b9b5030171`.
 - **Próximo:** validar o build Render e executar testes funcionais 1–7 com usuário real. Só então avançar a Etapa 8/13.
+
+
+### Validação de infraestrutura das etapas 1–7 — 31/08/2026
+- Supabase confirmado no projeto real: 1 empresa, 2 perfis, 1 paciente, 1 profissional e 1 agendamento existentes.
+- RLS está habilitado nas 11 tabelas públicas operacionais.
+- `pg_cron` possui 3 jobs ativos: enqueue, worker e retry, todos a cada minuto.
+- Funções `SECURITY DEFINER` de autorização/dispatch continuam presentes; não removidas sem teste de regressão.
+- Templates, automações, dispatches e integrações WhatsApp estão vazios no banco atual; portanto o CRUD da UI precisa ser exercitado com dados reais antes de declarar essas partes validadas.
+- Frontend restaurado está novamente com as implementações completas: `PatientsPage`, `ProfessionalsPage`, `AgendaPage`, `WhatsAppPage`, `AutomationsPage`, `TenantSettingsPage` e `manage-waha-session`.
+- **Próximo:** validar build do commit atual no Render; em seguida testar CRUD de paciente/profissional/agenda com a empresa existente e então WhatsApp/templates/automações. Não criar dados de teste automaticamente.
