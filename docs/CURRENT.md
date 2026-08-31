@@ -60,3 +60,15 @@ Sem essas secrets, não concluir teste real de QR/conexão/envio.
 
 ### Regra
 Não considerar Etapa 8 concluída apenas porque o build passa; validar o fluxo real ponta a ponta.
+
+
+### Revisão e restauração das etapas 1–7 — 31/08/2026
+- Histórico Git revisado: o último `App.tsx` completo e funcional antes da regressão foi o commit `59f4462c5d7bfce5e73177bcea51b77459d57d51`.
+- Restaurado esse baseline completo, preservando Auth, tenant, Superadmin, pacientes, profissionais, agenda, WhatsApp, automações e configurações.
+- O baseline restaurado contém CRUD/edição/status e históricos de pacientes/profissionais, agenda com edição/cancelamento e timezone, WhatsApp com templates/histórico e `manage-waha-session`, automações com CRUD e histórico de dispatches e configurações da empresa/conta.
+- Corrigido o uso do timezone no Dashboard e incluído `timezone` no tipo do `TenantContext`.
+- Banco Supabase real revisado: 9 tabelas operacionais com RLS habilitado, migrations até `waha_connection_state_stage8` e 5 Edge Functions ativas, incluindo `manage-waha-session` e processamento de dispatch.
+- Policies atuais cobrem isolamento por `company_id` em pacientes, profissionais, agenda, WhatsApp, templates, automações e dispatches; `profiles` permite leitura do próprio usuário.
+- Advisors de segurança ainda reportam funções `SECURITY DEFINER` expostas e proteção contra senhas vazadas desabilitada. Não alteradas nesta revisão porque algumas funções fazem parte dos contratos atuais de autorização/tempo e exigem validação específica antes de revogar execução.
+- Novo baseline restaurado no frontend: `d9aeda53fc5c620fc7b07fa31cc30240c610c1ae` + ajuste de contexto `652cdb448c582d8085bfa1421b7226b9b5030171`.
+- **Próximo:** validar o build Render e executar testes funcionais 1–7 com usuário real. Só então avançar a Etapa 8/13.
