@@ -207,3 +207,16 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Ajustada responsividade dos controles.
 - Commit App: `3b431c85d999f54a31f2f7cbfaa9c13a45386a41`.
 - Commit CSS: `4457acd3ec59e8903438c9c20d2864af5f9c30c7`.
+
+
+### Agenda v2 — Etapa 2 concluída — 31/08/2026
+
+- Implementadas as visões **Dia, Semana, Mês e Lista**.
+- Navegação anterior/próximo agora respeita a visão ativa: dia/lista navegam 1 dia, semana 1 semana e mês 1 mês.
+- Adicionado seletor visual de visão no toolbar.
+- Visão Dia mantém a grade horária e criação rápida por horário.
+- Visão Semana apresenta os sete dias em colunas.
+- Visão Mês apresenta calendário com quantidade de atendimentos por dia e clique para abrir o Dia.
+- Visão Lista apresenta os atendimentos do período de forma operacional.
+- Busca/filtros permanecem para a próxima etapa.
+- Commits: `2c735d0` (App) e `03188e9` (CSS).
