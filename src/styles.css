@@ -14,3 +14,12 @@
 .modal .head p{margin:5px 0 0;color:#77807a;font-size:12px}
 .modal>.hero-btn{margin-top:0}
 @media(max-width:650px){.form-grid{grid-template-columns:1fr;gap:14px}.full-field{grid-column:auto}.modal.panel{padding:20px}.modal-backdrop{padding:12px}}
+
+/* Appointment modal polish */
+.modal{width:min(720px,calc(100vw - 32px));max-height:calc(100vh - 32px);overflow:auto}
+.modal .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+.modal .form-grid .full-field{grid-column:1 / -1}
+.modal .form-grid>label{line-height:1.25}
+.modal .form-grid input,.modal .form-grid select{box-sizing:border-box;min-height:44px}
+.modal .form-grid textarea{box-sizing:border-box}
+@media(max-width:650px){.modal{width:calc(100vw - 24px);max-height:calc(100vh - 24px)}.modal .form-grid{grid-template-columns:1fr}.modal .form-grid .full-field{grid-column:auto}}
