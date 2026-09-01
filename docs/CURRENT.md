@@ -335,3 +335,14 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Mantida a leitura rápida sem transformar a Agenda em dashboard pesado.
 - Commit App: `147bb07`.
 - Commit CSS: `b022a3a`.
+
+
+### Refatoração estrutural — Etapa 11 concluída — 01/09/2026
+
+- App.tsx reduzido para responsabilidades de bootstrap, autenticação, autorização, layout e roteamento.
+- Páginas removidas do monólito e isoladas em src/pages/.
+- Criados: src/pages/shared.tsx, src/pages/admin.tsx, src/pages/tenant.tsx e src/pages/tenant/AgendaPage.tsx.
+- src/pages.tsx mantido como barrel de compatibilidade.
+- Agenda passa a poder ser alterada sem editar o App.tsx.
+- Próxima refatoração recomendada: separar Dashboard, Pacientes, Profissionais, WhatsApp e Automações em módulos individuais.
+- Commits principais: 8aac7ab, 98319ed, aa875c7, 3e8857b, 9c44fe6.
