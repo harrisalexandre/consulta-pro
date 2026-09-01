@@ -3,7 +3,7 @@ import { Navigate, NavLink, useNavigate, useParams } from 'react-router-dom'
 import { Activity, ArrowLeft, BarChart3, Bot, Building2, CalendarDays, CheckCircle2, ChevronRight, CircleAlert, Eye, EyeOff, LayoutDashboard, LogIn, LogOut, MessageCircle, Plus, Search, Settings, ShieldCheck, UserRound, Users, Wifi, XCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useTenant } from '../contexts/TenantContext'
-import { Empty, TenantPage, getSupabase, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, BR_TIMEZONE, zonedParts } from './shared'
+import { Empty, TenantPage, Metric, getSupabase, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, BR_TIMEZONE, zonedParts } from './shared'
 import { AgendaPage } from './tenant/AgendaPage'
 
 function PatientsPage(){
