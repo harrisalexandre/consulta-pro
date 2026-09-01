@@ -82,7 +82,6 @@ function AgendaPage(){
   const monthKeys=useMemo(()=>{const first=new Date(today.getFullYear(),today.getMonth(),1);const start=new Date(first);const w=start.getDay()||7;start.setDate(start.getDate()-w+1);return Array.from({length:42},(_,i)=>{const x=new Date(start);x.setDate(x.getDate()+i);return localDateKey(x,tz)})},[today,tz]);
   const holidayMap:Record<string,string>={'2026-01-01':'Confraternização Universal','2026-04-03':'Paixão de Cristo','2026-04-21':'Tiradentes','2026-05-01':'Dia do Trabalho','2026-09-07':'Independência do Brasil','2026-10-12':'Nossa Senhora Aparecida','2026-11-02':'Finados','2026-11-15':'Proclamação da República','2026-11-20':'Dia da Consciência Negra','2026-12-25':'Natal'};
   const pickerKeys=useMemo(()=>{const first=new Date(today.getFullYear(),today.getMonth(),1);const start=new Date(first);const w=start.getDay()||7;start.setDate(start.getDate()-w+1);return Array.from({length:42},(_,i)=>{const x=new Date(start);x.setDate(x.getDate()+i);return localDateKey(x,tz)})},[today,tz]);
-  const goMonth=(delta:number)=>setToday(d=>{const n=new Date(d);n.setMonth(n.getMonth()+delta);return n});
   const monthLabel=today.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   const goMonth=(delta:number)=>setToday(d=>{const n=new Date(d);n.setMonth(n.getMonth()+delta);return n});
 
