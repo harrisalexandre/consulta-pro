@@ -18,4 +18,4 @@ function Metric({label,value,icon:Icon}
 function AdminPlaceholder({title,description,icon:Icon}
 function Empty({text}
 function TenantPage({title,description,children,action}
-export { getSupabase, zonedParts, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, Metric, AdminPlaceholder, Empty, TenantPage }
+export { BR_TIMEZONE, getSupabase, zonedParts, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, Metric, AdminPlaceholder, Empty, TenantPage }
