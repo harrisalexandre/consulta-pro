@@ -79,7 +79,7 @@
 .agenda-search{width:min(320px,100%);display:flex;align-items:center;gap:8px;padding:0 11px;color:#7b8580}
 .agenda-search input{border:0;outline:0;width:100%;height:100%;font:13px inherit;color:#26302a;background:transparent}
 .agenda-search:focus-within,.agenda-filters select:focus{border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.08)}
-.clear-filters{height:40px;display:inline-flex;align-items:center}
+.clear-filters{height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #d9e0db;background:#fff;color:#315f52;border-radius:9px;padding:0 14px;font:600 12px/1 inherit;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}.clear-filters:hover{background:#f1f6f3;border-color:#315f52}.clear-filters:focus-visible{outline:none;border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.1)}
 @media(max-width:650px){.agenda-filters{align-items:stretch}.agenda-search{width:100%}.agenda-filters>label{flex:1;min-width:0}.agenda-filters>label:not(.agenda-search){min-width:130px}.clear-filters{align-self:center}}
 
 /* Appointment interaction */
@@ -167,7 +167,7 @@
 }
 
 /* Agenda — month view: full-width calendar */
-.page{width:100%;min-width:0}
+.page{width:100%;min-width:0;padding:32px}
 .page-header{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
 .page-header h1{margin:0;font-size:30px;line-height:1.1}
 .page-header p{margin:8px 0 0;color:#77807a;font-size:16px}
@@ -236,3 +236,5 @@
 .agenda-month-full .month-cell.holiday .month-cell-head strong{color:#a34b4b}
 .agenda-month-full .month-cell.holiday .month-cell-head strong::after{content:' •';font-size:11px}
 @media(max-width:700px){.date-popover{position:fixed;left:12px;top:120px;width:min(276px,calc(100vw - 24px))}.agenda-month-full{border-radius:8px}.agenda-month-full .month-grid{min-width:700px}.agenda-month-full .month-weekdays{min-width:700px}}
+
+@media(max-width:850px){.page{padding:24px 20px}}@media(max-width:500px){.page{padding:20px 14px}}
