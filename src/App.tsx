@@ -4,6 +4,7 @@ import {
   Activity, BarChart3, Bot, Building2, CalendarDays, Eye, EyeOff,
   LayoutDashboard, LogOut, MessageCircle, Settings, ShieldCheck, UserRound, Users
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { supabase } from './lib/supabase'
 import { TenantProvider, useTenant } from './contexts/TenantContext'
 import Landing from './Landing'
@@ -14,7 +15,7 @@ import {
   WhatsAppPage, AutomationsPage, TenantSettingsPage
 } from './pages'
 
-type Icon = React.ComponentType<{ size?: number }>
+type Icon = LucideIcon
 type NavItem = { path: string; label: string; icon: Icon }
 
 const tenantNav: NavItem[] = [
