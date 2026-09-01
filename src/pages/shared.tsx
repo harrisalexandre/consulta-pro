@@ -1,10 +1,11 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
+import { supabase } from '../../lib/supabase'
 import { Building2, ChevronRight } from 'lucide-react'
 
 export const BR_TIMEZONE = 'America/Sao_Paulo'
 
-export function getSupabase(){throw new Error('getSupabase must be provided by the page module')}
+export function getSupabase(){if(!supabase) throw new Error('Supabase não configurado.'); return supabase}
 export function zonedParts(date:Date,tz:string){
   const parts=new Intl.DateTimeFormat('en-CA',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(date)
   const o=Object.fromEntries(parts.map(x=>[x.type,x.value]))
