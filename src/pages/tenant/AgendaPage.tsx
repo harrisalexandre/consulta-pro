@@ -94,7 +94,7 @@ function AgendaPage(){
   <div className="month-grid">{monthKeys.map(k=>{
     const dayItems=filteredItems.filter(a=>localDateKey(new Date(a.starts_at),tz)===k);
     const inMonth=k.slice(0,7)===localDateKey(new Date(today.getFullYear(),today.getMonth(),1),tz).slice(0,7);
-    return <div className={'month-cell '+(!inMonth?'muted ':'')+(k===dayKey?' selected':'')} key={k} onClick={()=>{setToday(new Date(k+'T12:00:00'));setView('day')}}>
+    return <div className={'month-cell '+(!inMonth?'muted ':'')+(k===dayKey?' selected ':'')+(holidayMap[k]?' holiday':'')} key={k} onClick={()=>{setToday(new Date(k+'T12:00:00'));setView('day')}}>
       <div className="month-cell-head"><strong>{new Date(k+'T12:00:00').getDate()}</strong>{dayItems.length>0&&<span className="month-count">{dayItems.length}</span>}</div>
       <div className="month-events">{dayItems.slice(0,3).map(a=><div key={a.id} className={'month-event status-'+a.status} onClick={e=>{e.stopPropagation();editAppointment(a)}}><b>{formatZoned(a.starts_at,tz,{hour:'2-digit',minute:'2-digit'})}</b> {a.patients?.full_name||'Paciente'}</div>)}{dayItems.length>3&&<small>+ {dayItems.length-3} outros</small>}</div>
     </div>
