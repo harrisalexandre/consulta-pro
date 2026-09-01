@@ -18,6 +18,7 @@ export function localDateTimeToUtc(value:string,tz:string){
   for(let i=0;i<3;i++){const p=zonedParts(new Date(guess),tz);guess+=Date.UTC(y,m-1,d,hh,mm)-Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute)}
   return new Date(guess)
 }
+}
 export function utcToLocalInput(value:string,tz:string){const p=zonedParts(new Date(value),tz);return {date:`${p.year}-${String(p.month).padStart(2,'0')}-${String(p.day).padStart(2,'0')}`,time:`${String(p.hour).padStart(2,'0')}:${String(p.minute).padStart(2,'0')}`}}
 export function formatZoned(value:string,tz:string,opts:Intl.DateTimeFormatOptions={dateStyle:'short',timeStyle:'short'}){return new Intl.DateTimeFormat('pt-BR',{...opts,timeZone:tz}).format(new Date(value))}
 
