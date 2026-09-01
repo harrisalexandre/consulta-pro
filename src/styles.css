@@ -194,3 +194,45 @@
   .agenda-month-full{overflow-x:auto}
   .agenda-month-full .month-weekdays,.agenda-month-full .month-grid{min-width:700px}
 }
+
+/* Agenda final polish */
+.agenda-toolbar{padding:0 0 18px;margin:0;min-height:58px}
+.agenda-nav{gap:8px}
+.agenda-today,.agenda-nav-btn,.agenda-date-picker{height:40px;border-radius:10px}
+.agenda-date-picker-wrap{position:relative;display:inline-flex;z-index:20}
+.agenda-date-picker{width:40px;padding:0;cursor:pointer}
+.agenda-date-picker svg{display:block}
+.date-popover{position:absolute;top:calc(100% + 8px);left:0;width:276px;background:#fff;border:1px solid #dce3de;border-radius:12px;padding:12px;box-shadow:0 12px 30px rgba(30,48,39,.16);z-index:100}
+.date-popover-head{display:grid;grid-template-columns:32px 1fr 32px;align-items:center;gap:4px;margin-bottom:10px}
+.date-popover-head strong{text-align:center;font-size:13px;text-transform:capitalize}
+.date-popover-head button{width:32px;height:32px;border:0;border-radius:7px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.date-popover-head button:hover{background:#f0f4f1}
+.date-popover-weekdays,.date-popover-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.date-popover-weekdays b{text-align:center;font-size:10px;color:#8a948e;padding:5px 0}
+.date-popover-grid button{position:relative;height:31px;border:0;border-radius:7px;background:transparent;font:500 12px inherit;color:#303833;cursor:pointer}
+.date-popover-grid button:hover{background:#eef3ef}
+.date-popover-grid button.muted{color:#b8c0bb}
+.date-popover-grid button.selected{background:#315f52;color:#fff;font-weight:800}
+.date-popover-grid button.holiday:not(.selected){background:#fff2ef;color:#a34b4b;font-weight:800}
+.date-popover-grid button.holiday i{position:absolute;width:4px;height:4px;border-radius:50%;background:#b54d45;bottom:3px;left:50%;transform:translateX(-50%)}
+.date-popover-grid button.selected.holiday i{background:#fff}
+.date-popover-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid #edf0ee;margin-top:10px;padding-top:9px;font-size:10px;color:#7a847e}
+.date-popover-foot button{border:0;background:transparent;color:#315f52;font:700 11px inherit;cursor:pointer;padding:4px 0}
+.date-popover-foot span{display:flex;align-items:center;gap:5px}
+.date-popover-foot i{width:5px;height:5px;border-radius:50%;background:#b54d45}
+.agenda-filters{padding:14px 0 16px;gap:12px}
+.agenda-filters>label{min-width:170px}
+.agenda-search{height:42px}
+.agenda-filters select{height:42px}
+.agenda-month-full{border:1px solid #e1e6e2;border-radius:10px;overflow:hidden;background:#fff}
+.agenda-month-full .month-weekdays{background:#fafcfb;border-top:0}
+.agenda-month-full .month-weekdays b{padding:11px 12px}
+.agenda-month-full .month-grid{background:#e4e8e5;gap:1px}
+.agenda-month-full .month-cell{border:0;border-radius:0;padding:10px;background:#fff;min-height:116px}
+.agenda-month-full .month-cell.muted{background:#fafbfa}
+.agenda-month-full .month-cell.selected{box-shadow:inset 0 0 0 2px #315f52}
+.agenda-month-full .month-cell-head strong{font-size:13px}
+.agenda-month-full .month-cell.holiday{background:#fffaf9}
+.agenda-month-full .month-cell.holiday .month-cell-head strong{color:#a34b4b}
+.agenda-month-full .month-cell.holiday .month-cell-head strong::after{content:' •';font-size:11px}
+@media(max-width:700px){.date-popover{position:fixed;left:12px;top:120px;width:min(276px,calc(100vw - 24px))}.agenda-month-full{border-radius:8px}.agenda-month-full .month-grid{min-width:700px}.agenda-month-full .month-weekdays{min-width:700px}}
