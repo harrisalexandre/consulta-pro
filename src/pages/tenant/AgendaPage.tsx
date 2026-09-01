@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, CalendarDays, ChevronRight, Plus, Search, XCircle } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useTenant } from '../../contexts/TenantContext'
-import { Empty, TenantPage, getSupabase, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned } from '../shared'
+import { Empty, TenantPage, getSupabase, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, BR_TIMEZONE, zonedParts } from '../shared'
 function AgendaPage(){
   const{activeCompany}=useTenant();
   const[today,setToday]=useState(()=>new Date());
