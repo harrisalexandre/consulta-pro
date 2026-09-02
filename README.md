@@ -8,7 +8,7 @@ SaaS multi-tenant para gestão de consultórios e clínicas.
 - Tenant = empresa (companies)
 - company_users vincula usuários aos tenants
 - profissionais, pacientes, agenda, WhatsApp e automações possuem company_id
-- WhatsApp pertence à empresa e está preparado para Evolution API
+- WhatsApp pertence à empresa e está preparado para Evolution API. A Evolution usada pelo Consulta Pro é uma infraestrutura separada do Karatê; URL, API key e instâncias não são compartilhadas.
 - automation_dispatches possui deduplicação por company + automation + appointment + recipient
 
 ## Segurança
@@ -17,6 +17,12 @@ O TenantContext controla somente o contexto da interface. O isolamento real é f
 ## Variáveis
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
+
+### Secrets das Edge Functions
+EVOLUTION_API_URL=
+EVOLUTION_API_KEY=
+
+A API da Evolution é acessada exclusivamente pelas Edge Functions. Nunca colocar essas credenciais em `VITE_*` ou no frontend. A instância é derivada por tenant (`consulta-pro-<company_id>`) quando não houver uma instância configurada.
 
 ## Deploy Render
 Build: npm install && npm run build
