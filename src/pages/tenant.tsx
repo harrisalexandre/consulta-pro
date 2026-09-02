@@ -69,17 +69,19 @@ function WhatsAppPage(){
   useEffect(()=>{load()},[activeCompany?.id]);
 
   async function session(action:string){
-    if(!supabase)return;
+    if(!supabase||!activeCompany)return;
     setBusy(true);setError('');setSuccess('');
-    const{data,error}=await supabase!.functions.invoke('manage-evolution-session',{body:{action,company_id:activeCompany?.id}});
+    const{data,error}=await supabase!.functions.invoke('manage-evolution-session',{body:{action,company_id:activeCompany.id}});
     if(error){setError(error.message||'Não foi possível comunicar com o WhatsApp.');setBusy(false);return}
     if(data?.error){setError(data.error);setBusy(false);return}
     if(data?.qr){
       const q=data.qr?.value||data.qr?.qr||data.qr?.data||data.qr;
       if(typeof q==='string')setQr(q.startsWith('data:')?q:`data:image/png;base64,${q}`);
     }
+    if(data?.status==='connected') setQr(null);
     setSuccess(data?.status==='connected'?'WhatsApp conectado.':'Sessão atualizada.');
-    await load();setBusy(false);
+    setBusy(false);
+    await load();
   }
 
   useEffect(()=>{
