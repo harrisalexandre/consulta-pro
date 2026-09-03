@@ -306,3 +306,43 @@
 .content>.grid .wa small{font-size:11px;color:#77807a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:850px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.content>.grid{grid-template-columns:1fr}}
 @media(max-width:600px){.content>.head{gap:16px}.content>.head .hero-btn{width:100%}.metrics{grid-template-columns:1fr}.metric{min-height:82px}.content>.grid .stats{grid-template-columns:1fr 1fr}}
+
+
+/* Patient / Professional directory */
+.directory-panel{padding:30px 32px 18px}
+.directory-head{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:24px!important;padding-bottom:24px!important;border-bottom:1px solid #e7ebe8!important}
+.directory-head h2{margin:0!important;font-size:18px!important;font-weight:800!important;color:#202522!important}
+.directory-head p{margin:8px 0 0!important;font-size:13px!important;color:#7b847e!important}
+.directory-search{width:min(330px,100%)}
+.directory-search input{width:100%!important;max-width:none!important;height:40px!important;box-sizing:border-box!important;padding:0 13px!important;border:1px solid #d8dfda!important;border-radius:9px!important;background:#fff!important;color:#252b27!important;font:500 13px Inter,system-ui,sans-serif!important;outline:none!important;box-shadow:none!important}
+.directory-search input::placeholder{color:#929a95!important}
+.directory-search input:focus{border-color:#315f52!important;box-shadow:0 0 0 3px rgba(49,95,82,.08)!important}
+.directory-row{display:grid!important;grid-template-columns:28px minmax(0,1fr) auto auto!important;align-items:center!important;gap:14px!important;min-height:82px!important;padding:14px 4px!important;border-bottom:1px solid #edf0ee!important}
+.directory-row:last-child{border-bottom:0!important}
+.directory-row>svg{color:#53615a!important}
+.directory-row>span{min-width:0!important;display:grid!important;gap:5px!important}
+.directory-row>span b{font-size:15px!important;font-weight:750!important;color:#202522!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.directory-row>span small{font-size:12px!important;color:#7b847e!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-badge{font-style:normal!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;min-width:55px!important;height:28px!important;padding:0 10px!important;border-radius:999px!important;font:700 11px Inter,system-ui,sans-serif!important}
+.status-badge.active{background:#edf5f1!important;color:#39705f!important}
+.status-badge.inactive{background:#f4eeee!important;color:#9a5b5b!important}
+.row-actions{display:flex!important;align-items:center!important;gap:8px!important}
+.directory-action{appearance:none!important;-webkit-appearance:none!important;height:36px!important;padding:0 13px!important;border:1px solid #d5ddd7!important;border-radius:8px!important;background:#fff!important;color:#315f52!important;font:700 12px Inter,system-ui,sans-serif!important;cursor:pointer!important;box-shadow:none!important;white-space:nowrap!important}
+.directory-action:hover{background:#f1f6f3!important;border-color:#315f52!important}
+.directory-action:last-child{color:#4d5751!important}
+.directory-action:last-child:hover{border-color:#8a958f!important;background:#f7f8f7!important}
+.directory-panel .empty-box{min-height:220px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;color:#7b847e!important}
+@media(max-width:760px){
+.directory-panel{padding:22px 20px 12px}
+.directory-head{flex-direction:column!important;gap:16px!important}
+.directory-search{width:100%}
+.directory-row{grid-template-columns:28px minmax(0,1fr) auto!important;gap:10px!important}
+.directory-row .status-badge{grid-column:2}
+.row-actions{grid-column:2 / -1}
+.directory-action{flex:1}
+}
+@media(max-width:480px){
+.directory-row{grid-template-columns:24px minmax(0,1fr)!important}
+.directory-row .status-badge,.directory-row .row-actions{grid-column:2}
+.row-actions{width:100%}
+}
