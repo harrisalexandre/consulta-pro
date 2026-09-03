@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Navigate, NavLink, useNavigate, useParams } from 'react-router-dom'
-import { Activity, ArrowLeft, BarChart3, Bot, Building2, CalendarDays, CheckCircle2, ChevronRight, CircleAlert, Copy, Eye, EyeOff, LayoutDashboard, LogIn, LogOut, MessageCircle, Plus, Search, Settings, ShieldCheck, Trash2, UserRound, Users, Wifi, XCircle } from 'lucide-react'
+import { Activity, ArrowLeft, BarChart3, Bot, Building2, CalendarDays, CheckCircle2, ChevronRight, CircleAlert, Clock, Copy, Eye, EyeOff, LayoutDashboard, LogIn, LogOut, MessageCircle, Plus, Search, Settings, ShieldCheck, Timer, Trash2, UserRound, Users, Wifi, GitBranch, XCircle } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useTenant } from '../contexts/TenantContext'
 import { Empty, TenantPage, Metric, getSupabase, localDateKey, localDateTimeToUtc, utcToLocalInput, formatZoned, BR_TIMEZONE, zonedParts } from './shared'
