@@ -169,9 +169,9 @@ export function AgendaPage() {
         <small>{item.professionals?.name || 'Profissional'} · {item.appointment_type || 'Consulta'} · {item.status || 'scheduled'}</small>
       </div>
       <span>
-        {item.status !== 'confirmed' && item.status !== 'completed' && <button type="button" className="back-link" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'confirmed') }}>Confirmar</button>}
-        {item.status === 'confirmed' && <button type="button" className="back-link" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'completed') }}>Concluir</button>}
-        {item.status !== 'cancelled' && item.status !== 'completed' && <button type="button" className="back-link danger" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'cancelled') }}>Cancelar</button>}
+        {item.status !== 'confirmed' && item.status !== 'completed' && <button type="button" className="appointment-action confirm" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'confirmed') }}>Confirmar</button>}
+        {item.status === 'confirmed' && <button type="button" className="appointment-action confirm" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'completed') }}>Concluir</button>}
+        {item.status !== 'cancelled' && item.status !== 'completed' && <button type="button" className="appointment-action cancel" onClick={e => { e.stopPropagation(); setAppointmentStatus(item.id, 'cancelled') }}>Cancelar</button>}
       </span>
     </div>
   }
