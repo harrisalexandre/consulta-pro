@@ -2,7 +2,7 @@
 
 ## Visão
 
-```
+```text
 Browser
   ↓
 React / React Router
@@ -17,53 +17,55 @@ Browser
   ↓
 Supabase Edge Functions
   ↓
-Integrações externas / operações privilegiadas
+Evolution API
+  ↓
+WhatsApp
 ```
 
 ## Frontend
-- React + TypeScript.
-- Vite.
+- React + TypeScript + Vite.
 - React Router.
 - Lucide para ícones.
 - Layout separado entre Superadmin e tenant.
 - `TenantContext` mantém empresa ativa.
-- Componentes devem reutilizar services/contextos existentes antes de duplicar acesso ao backend.
+- `SessionGate` aguarda a sessão antes de renderizar a aplicação protegida.
+- O loading de acesso também aguarda a resolução do tenant para evitar flash de “nenhuma empresa vinculada” durante o carregamento.
+- Páginas operacionais ficam em `src/pages/`; Agenda está isolada em `src/pages/tenant/AgendaPage.tsx`.
 
 ## Backend
-Supabase fornece:
-- Auth;
-- PostgreSQL;
-- RLS;
-- RPCs;
-- Edge Functions.
-
-## Auth
-Login usa Supabase Auth. Sessão é recuperada no carregamento e observada por `onAuthStateChange`.
-
-Operações administrativas de Auth devem ficar em Edge Functions.
+Supabase fornece Auth, PostgreSQL, RLS, RPCs e Edge Functions.
 
 ## Multi-tenant
-`company_id` é a chave funcional do tenant. O frontend usa o tenant apenas para contexto e filtragem conveniente. A autorização definitiva deve ser garantida no backend/RLS.
+`company_id` é a chave funcional do tenant. O frontend usa o tenant para contexto e filtragem conveniente. A autorização definitiva é garantida por RLS e validação server-side.
 
-## Domínios
-- Empresas e acessos.
-- Pacientes.
-- Profissionais.
-- Agenda.
-- WhatsApp.
-- Automações.
-- Dashboard.
-- Configurações.
+## WhatsApp
+O transporte operacional é a Evolution API.
+
+Edge Functions:
+- `manage-evolution-session`: cria/consulta sessão, gera QR e configura o webhook.
+- `receive-evolution-webhook`: recebe mudanças de conexão e eventos de mensagens.
+- `process-automation-dispatches`: processa dispatches e envia mensagens pela Evolution.
+
+Secrets:
+- `EVOLUTION_API_URL`
+- `EVOLUTION_API_KEY`
+
+Essas secrets nunca devem chegar ao browser.
+
+## Agenda
+- Dia, Semana, Mês e Lista.
+- Mês é a visão inicial.
+- Dia/Semana posicionam eventos por horário e duração.
+- Filtros: paciente, profissional, status e tipo.
+- Criação/edição/confirmação/cancelamento.
+- Datas respeitam o timezone do tenant.
 
 ## Deploy
-Render executa:
-`npm install && npm run build`
+Render executa `npm install && npm run build`.
 
-Publicação:
-`dist`
+Publicação: `dist`
 
-A aplicação SPA precisa de rewrite:
-`/* → /index.html`
+SPA: `/* → /index.html`
 
 ## Regra arquitetural
-Não criar nova camada, tabela ou integração sem confirmar primeiro a estrutura existente. Código/schema atual prevalece sobre documentação.
+Código/schema atual prevalece sobre documentação. Não criar nova camada, tabela ou integração sem inspecionar a estrutura existente.
