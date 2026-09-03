@@ -1,5 +1,66 @@
 # Consulta Pro — Estado atual
 
+**Atualizado em:** 03/09/2026  
+**Branch canônica:** `main`
+
+## Status atual
+
+O Consulta Pro está em fase de fechamento operacional, revisão de UX e validação ponta a ponta.
+
+### Infraestrutura atual
+- Frontend publicado no Render.
+- Supabase Auth/PostgreSQL/RLS como backend principal.
+- Evolution API 2.3.7 publicada no Render em serviço separado.
+- PostgreSQL da Evolution em Render.
+- Valkey/Redis da Evolution em Render.
+- Evolution e seus recursos são infraestrutura separada do Karate ERP.
+- Edge Functions de integração mantêm as credenciais fora do frontend.
+
+### WhatsApp — estado atual
+- Provider oficial do Consulta Pro: Evolution API.
+- `manage-evolution-session` cria/consulta a sessão, configura webhook e obtém QR.
+- `receive-evolution-webhook` recebe eventos da Evolution, especialmente `CONNECTION_UPDATE`.
+- A tela `/whatsapp` foi simplificada para linguagem de negócio: conectar, QR, conectado, número conectado e desconectar.
+- Detalhes internos de Evolution, Redis, endpoints, timeout e códigos técnicos não devem ser exibidos ao usuário.
+- Durante a conexão, o frontend atualiza a busca do QR periodicamente para evitar ficar preso em “Conectando”.
+- Desconexões do aparelho devem ser refletidas pelo webhook e persistidas no estado do tenant.
+- Templates de mensagens ficam separados da tela principal de conexão.
+- O histórico de mensagens e automações continuam vinculados ao tenant.
+
+### UX transversal
+- Loading inicial foi unificado para evitar o flash de “Nenhuma empresa vinculada” enquanto sessão/tenant ainda estão sendo resolvidos.
+- O estado “Nenhuma empresa vinculada” só deve aparecer depois que o carregamento do tenant terminar e realmente não houver vínculo.
+- Estados de erro de infraestrutura devem ser tratados sem expor detalhes técnicos ao usuário.
+- Botões, modais, filtros, espaçamentos e estados vazios estão passando por revisão visual módulo a módulo.
+
+### Agenda
+- Visão inicial: Mês.
+- Visões disponíveis: Dia, Semana, Mês e Lista.
+- Mês apresenta todos os dias e os dias da semana no cabeçalho.
+- Dia/Semana posicionam atendimentos por horário e duração.
+- Filtros por paciente, profissional, status e tipo.
+- CRUD de atendimento, confirmação e cancelamento.
+- Layout do calendário foi reduzido para ocupar melhor a tela.
+
+### Operação
+- Pacientes: CRUD, busca, status e histórico; edição inclui observações e endereço.
+- Profissionais: CRUD, busca, status e histórico.
+- Dashboard e demais telas operacionais passaram por revisão visual para remover estilos quebrados, ícones soltos e elementos internos expostos.
+- Templates possuem tela própria e fluxo de gerenciamento.
+- Automações possuem estrutura de CRUD por tenant.
+
+## Próxima validação obrigatória
+1. Confirmar deploy da `main`.
+2. Testar conexão WhatsApp e QR real.
+3. Testar desconexão pelo aparelho e atualização via webhook.
+4. Criar template e automação de teste.
+5. Criar agendamento de teste e validar o fluxo de dispatch.
+6. Validar histórico e estados de erro sem exposição de detalhes internos.
+7. Rodar `npm run build`.
+8. Atualizar esta documentação somente quando o comportamento real mudar.
+
+---
+
 **Atualizado em:** 29/08/2026  
 **Branch canônica:** `main`
 
