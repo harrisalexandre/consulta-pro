@@ -67,32 +67,50 @@ function WhatsAppPage(){
       supabase.from('whatsapp_integrations').select('*').eq('company_id',activeCompany.id).maybeSingle(),
       supabase.from('whatsapp_messages').select('id,recipient_number,direction,kind,body,status,sent_at,created_at').eq('company_id',activeCompany.id).order('created_at',{ascending:false}).limit(50)
     ]);
-    if(w.error||m.error)setError(w.error?.message||m.error?.message||'Não foi possível carregar o WhatsApp.');
+    if(w.error||m.error)setError('Não foi possível carregar o WhatsApp.');
     setItem(w.data||null);setMessages(m.data||[]);setLoading(false)
   }
 
   useEffect(()=>{load()},[activeCompany?.id]);
 
+  function applyQr(data:any){
+    const q=data?.qr?.value||data?.qr?.qr||data?.qr?.data||data?.qr;
+    if(typeof q==='string'&&q.length>20)setQr(q.startsWith('data:')?q:`data:image/png;base64,${q}`);
+    if(data?.status==='connected'){
+      setQr(null);
+      setItem((current:any)=>current?{...current,status:'connected'}:current);
+      setSuccess('WhatsApp conectado.');
+    }
+  }
+
+  async function refreshQr(manual=false){
+    if(!supabase||!activeCompany)return;
+    if(manual)setBusy(true);
+    try{
+      const{data}=await supabase.functions.invoke('manage-evolution-session',{body:{action:'qr',company_id:activeCompany.id}});
+      if(data&&!data.error)applyQr(data);
+    }catch{}
+    finally{if(manual)setBusy(false)}
+  }
+
   async function session(action:string){
     if(!supabase||!activeCompany)return;
     setBusy(true);setError('');setSuccess('');
-    const{data,error}=await supabase.functions.invoke('manage-evolution-session',{body:{action,company_id:activeCompany.id}});
-    if(error){setError(error.message||'Não foi possível conectar o WhatsApp.');setBusy(false);return}
-    if(data?.error){setError(data.error);setBusy(false);return}
-    if(data?.qr){
-      const q=data.qr?.value||data.qr?.qr||data.qr?.data||data.qr;
-      if(typeof q==='string')setQr(q.startsWith('data:')?q:`data:image/png;base64,${q}`)
-    }
-    if(data?.status==='connected'){setQr(null);setSuccess('WhatsApp conectado.')}
-    else if(action==='disconnect'){setQr(null);setSuccess('WhatsApp desconectado.')}
-    setBusy(false);await load()
+    try{
+      const{data,error}=await supabase.functions.invoke('manage-evolution-session',{body:{action,company_id:activeCompany.id}});
+      if(error||data?.error){setError('Não foi possível atualizar a conexão.');return}
+      applyQr(data);
+      if(action==='disconnect'){setQr(null);setSuccess('WhatsApp desconectado.')}
+      await load()
+    }catch{setError('Não foi possível atualizar a conexão.')}
+    finally{setBusy(false)}
   }
 
   useEffect(()=>{
     if(!item||item.status!=='connecting')return;
-    const timer=setInterval(()=>session('qr'),5000);
+    const timer=setInterval(()=>refreshQr(false),5000);
     return()=>clearInterval(timer)
-  },[item?.status]);
+  },[item?.status,activeCompany?.id]);
 
   const status=item?.status;
   const connected=status==='connected';
@@ -104,7 +122,6 @@ function WhatsAppPage(){
     <section className="panel whatsapp-panel">
       <div className="head">
         <div><h2>WhatsApp</h2><p>Conecte o número do consultório para enviar mensagens aos pacientes.</p></div>
-        {(status==='error'||error)&&<span className="wa-warning" title="Não foi possível atualizar a conexão"><CircleAlert size={20}/></span>}
       </div>
       {loading?<div className="empty-box">Carregando...</div>:<>
         {connected&&<div className="wa-status-card">
@@ -122,7 +139,7 @@ function WhatsAppPage(){
         <div className="wa-actions">
           {connected
             ? <button className="wa-action-danger" disabled={busy} onClick={()=>session('disconnect')}>{busy?'Desconectando...':'Desconectar'} <LogOut size={16}/></button>
-            : <button className="hero-btn" disabled={busy} onClick={()=>session(connecting?'qr':'start')}>{busy?'Conectando...':connecting?'Atualizar QR':'Conectar WhatsApp'} <Wifi size={16}/></button>}
+            : <button className="hero-btn" disabled={busy} onClick={()=>connecting?refreshQr(true):session('start')}>{busy?'Atualizando QR...':connecting?'Atualizar QR':'Conectar WhatsApp'} <Wifi size={16}/></button>}
         </div>
       </>}
     </section>
