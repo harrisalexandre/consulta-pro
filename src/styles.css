@@ -428,3 +428,15 @@
  .patient-history-item .appointment-status{grid-column:2}
  .full-field{grid-column:auto}
 }
+
+
+.agenda-month-full .month-holiday{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a34b4b;font-size:9px;font-weight:700;line-height:1.2}
+.agenda-month-full .month-cell.selected .month-cell-head strong{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;border-radius:50%;background:#315f52;color:#fff}
+.agenda-month-full .month-cell.muted .month-holiday{color:#b7aaa8}
+.agenda-month-full .month-event{cursor:pointer;text-align:left;border:0;width:100%;font:600 10px/1.25 Inter,system-ui,sans-serif}
+.agenda-month-full .month-event:hover{background:#dfece5}
+@media(max-width:700px){
+  .agenda-month-full .month-grid{grid-auto-rows:minmax(96px,1fr)}
+  .agenda-month-full .month-cell{min-height:96px;padding:7px}
+  .agenda-month-full .month-event{font-size:9px;padding:4px 5px}
+}
