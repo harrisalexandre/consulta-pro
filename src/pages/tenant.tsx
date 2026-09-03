@@ -90,7 +90,7 @@ function WhatsAppPage(){
 
   useEffect(()=>{
     if(!item||item.status!=='connecting')return;
-    const timer=setInterval(()=>session('status'),5000);
+    const timer=setInterval(()=>session('qr'),5000);
     return()=>clearInterval(timer)
   },[item?.status]);
 
