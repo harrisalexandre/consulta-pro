@@ -251,3 +251,15 @@
 .agenda-filters>select:focus{border-color:#315f52;box-shadow:0 0 0 3px rgba(49,95,82,.08)}
 @media(max-width:1000px){.agenda-view-toggle{margin-left:auto}}
 @media(max-width:650px){.agenda-view-toggle{width:100%;justify-content:space-between}.agenda-view-toggle button{flex:1;padding:9px 6px}.search-wrap{width:100%}.agenda-filters>select{flex:1;min-width:0}}
+
+
+/* Agenda — appointment actions */
+.appointment-card>span{display:flex;align-items:center;gap:8px;margin-top:10px}
+.appointment-card .back-link{appearance:none;border:1px solid #cfd8d2;background:#fff;color:#315f52;border-radius:7px;padding:6px 11px;font:700 11px/1 inherit;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,color .15s}
+.appointment-card .back-link:hover{background:#eef5f1;border-color:#315f52}
+.appointment-card .back-link.danger{color:#a34b4b;border-color:#dfcaca}
+.appointment-card .back-link.danger:hover{background:#fff3f2;border-color:#c58a8a;color:#8e3f3f}
+.modal>div:last-child{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:18px}
+.modal>div:last-child .hero-btn{width:auto;margin-top:0}
+.modal>div:last-child .back-link{appearance:none;border:1px solid #d4dcd6;background:#fff;color:#4d5952;border-radius:8px;padding:10px 16px;font:700 12px/1 inherit;cursor:pointer}
+.modal>div:last-child .back-link:hover{background:#f3f6f4;border-color:#aebbb3}
