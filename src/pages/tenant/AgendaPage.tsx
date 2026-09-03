@@ -162,6 +162,89 @@ export function AgendaPage() {
     ? currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
     : currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
 
+  const holidays = useMemo(() => {
+    const year = currentDate.getFullYear()
+    const easter = (() => {
+      const a = year % 19
+      const b = Math.floor(year / 100)
+      const c = year % 100
+      const d = Math.floor(b / 4)
+      const e = b % 4
+      const f = Math.floor((b + 8) / 25)
+      const g = Math.floor((b - f + 1) / 3)
+      const h = (19 * a + b - d - g + 15) % 30
+      const i = Math.floor(c / 4)
+      const k = c % 4
+      const l = (32 + 2 * e + 2 * i - h - k) % 7
+      const m = Math.floor((a + 11 * h + 22 * l) / 451)
+      const month = Math.floor((h + l - 7 * m + 114) / 31)
+      const day = ((h + l - 7 * m + 114) % 31) + 1
+      return new Date(year, month - 1, day)
+    })()
+    const addDays = (date: Date, days: number) => {
+      const next = new Date(date)
+      next.setDate(next.getDate() + days)
+      return next
+    }
+    const fixed: Record<string, string> = {
+      [year + '-01-01']: 'Confraternização Universal',
+      [year + '-04-21']: 'Tiradentes',
+      [year + '-05-01']: 'Dia do Trabalho',
+      [year + '-09-07']: 'Independência do Brasil',
+      [year + '-10-12']: 'Nossa Senhora Aparecida',
+      [year + '-11-02']: 'Finados',
+      [year + '-11-15']: 'Proclamação da República',
+      [year + '-11-20']: 'Dia da Consciência Negra',
+      [year + '-12-25']: 'Natal',
+    }
+    const result = { ...fixed }
+    result[localDateKey(addDays(easter, -48), tz)] = 'Carnaval'
+    result[localDateKey(addDays(easter, -47), tz)] = 'Carnaval'
+    result[localDateKey(addDays(easter, -2), tz)] = 'Sexta-feira Santa'
+    result[localDateKey(addDays(easter, 60), tz)] = 'Corpus Christi'
+    return result
+  }, [currentDate, tz])
+
+  const monthDays = useMemo(() => {
+    const first = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+    const start = new Date(first)
+    const mondayOffset = (first.getDay() + 6) % 7
+    start.setDate(first.getDate() - mondayOffset)
+    return Array.from({ length: 42 }, (_, index) => {
+      const day = new Date(start)
+      day.setDate(start.getDate() + index)
+      return day
+    })
+  }, [currentDate])
+
+  function monthCalendar() {
+    return <div className="agenda-month-full">
+      <div className="month-weekdays">{['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map(day => <b key={day}>{day}</b>)}</div>
+      <div className="month-grid">
+        {monthDays.map(day => {
+          const key = localDateKey(day, tz)
+          const dayItems = filtered.filter(item => localDateKey(new Date(item.starts_at), tz) === key)
+          const holiday = holidays[key]
+          const isCurrentMonth = day.getMonth() === currentDate.getMonth()
+          const isToday = localDateKey(new Date(), tz) === key
+          return <button type="button" key={key} className={`month-cell ${isCurrentMonth ? '' : 'muted'} ${isToday ? 'selected' : ''} ${holiday ? 'holiday' : ''}`} onClick={() => openNew(key)}>
+            <div className="month-cell-head">
+              <strong>{day.getDate()}</strong>
+              {dayItems.length > 0 && <span className="month-count">{dayItems.length}</span>}
+            </div>
+            {holiday && <small className="month-holiday">{holiday}</small>}
+            <div className="month-events">
+              {dayItems.slice(0, 3).map(item => <div key={item.id} className="month-event" onClick={e => { e.stopPropagation(); openEdit(item) }}>
+                <b>{formatZoned(item.starts_at, tz, { hour: '2-digit', minute: '2-digit' })}</b> {item.patients?.full_name || 'Paciente'}
+              </div>)}
+              {dayItems.length > 3 && <small>+{dayItems.length - 3} atendimento(s)</small>}
+            </div>
+          </button>
+        })}
+      </div>
+    </div>
+  }
+
   function appointmentCard(item: Appointment) {
     return <div className="appointment-card" key={item.id} onClick={() => openEdit(item)}>
       <div>
@@ -199,7 +282,7 @@ export function AgendaPage() {
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option value="">Todos os status</option><option value="scheduled">Agendados</option><option value="confirmed">Confirmados</option><option value="completed">Realizados</option><option value="cancelled">Cancelados</option></select>
       </div>
       {error && <div className="form-error">{error}</div>}
-      {loading ? <div className="empty-box">Carregando agenda...</div> : <div>{filtered.length ? filtered.map(appointmentCard) : <div className="empty-box">Nenhum atendimento encontrado.</div>}</div>}
+      {loading ? <div className="empty-box">Carregando agenda...</div> : view === 'month' ? monthCalendar() : <div>{filtered.length ? filtered.map(appointmentCard) : <div className="empty-box">Nenhum atendimento encontrado.</div>}</div>}
     </section>
 
     {modalOpen && <div className="modal-backdrop">
