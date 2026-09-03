@@ -117,7 +117,7 @@ function WhatsAppPage(){
           {qr&&<img src={qr} alt="QR Code para conectar o WhatsApp"/>}
         </div>}
         {!connected&&!connecting&&<div className="empty-box">
-          <MessageCircle size={30}/><h2>WhatsApp desconectado</h2><p>Conecte seu WhatsApp para começar a enviar mensagens aos pacientes.</p>
+          <h2>WhatsApp desconectado</h2><p>Conecte seu WhatsApp para começar a enviar mensagens aos pacientes.</p>
         </div>}
         <div className="wa-actions">
           {connected
