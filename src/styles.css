@@ -346,3 +346,46 @@
 .directory-row .status-badge,.directory-row .row-actions{grid-column:2}
 .row-actions{width:100%}
 }
+
+
+/* Professional agenda modal */
+.professional-agenda-modal{width:min(680px,calc(100vw - 32px))!important;padding:0!important;overflow:hidden!important}
+.modal-titlebar{display:flex;justify-content:space-between;align-items:center;padding:24px 26px 20px;border-bottom:1px solid #e8ece9}
+.professional-heading{display:flex;align-items:center;gap:13px;min-width:0}
+.professional-avatar{width:46px;height:46px;border-radius:13px;background:#e7f0eb;color:#315f52;display:grid;place-items:center;flex:0 0 46px}
+.professional-heading h2{margin:0!important;font-size:20px!important;line-height:1.2}
+.professional-heading p{margin:5px 0 0!important;color:#7a847e;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.modal-close{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;color:#68736c}
+.modal-close:hover{background:#f1f4f2}
+.agenda-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 26px;background:#fafbfa;border-bottom:1px solid #edf0ee}
+.agenda-summary div{display:grid;gap:3px}
+.agenda-summary b{font-size:20px;color:#202522}
+.agenda-summary span{font-size:11px;color:#7a847e}
+.modal-section-heading{padding:22px 26px 12px}
+.modal-section-heading h3{margin:0;font-size:14px;color:#202522}
+.modal-section-heading p{margin:5px 0 0;font-size:11px;color:#89928d}
+.professional-appointments{padding:0 26px;max-height:390px;overflow:auto}
+.professional-appointment{display:grid;grid-template-columns:62px minmax(0,1fr) auto;align-items:center;gap:14px;padding:14px 0;border-top:1px solid #edf0ee}
+.appointment-date{display:grid;gap:2px;text-align:left}
+.appointment-date b{text-transform:capitalize;font-size:12px;color:#315f52}
+.appointment-date span{font-size:11px;color:#7a847e}
+.appointment-info{display:grid;gap:4px;min-width:0}
+.appointment-info strong{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.appointment-info span{font-size:11px;color:#7a847e}
+.appointment-status{font-style:normal;font-size:10px;font-weight:700;padding:6px 9px;border-radius:999px;background:#eef3ef;color:#5f6b64;white-space:nowrap}
+.appointment-status.confirmed{background:#e8f4ed;color:#327354}
+.appointment-status.completed,.appointment-status.done{background:#e8f0f5;color:#426a80}
+.appointment-status.cancelled{background:#fff0ef;color:#a3433d}
+.appointment-status.scheduled,.appointment-status.pending{background:#f7f1e5;color:#856b35}
+.agenda-empty{margin:0 26px 22px;min-height:150px;border:1px dashed #dce3de;border-radius:11px;background:#fafbfa;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:7px;color:#7a847e}
+.agenda-empty svg{color:#315f52}
+.agenda-empty strong{font-size:13px;color:#303732}
+.agenda-empty span{font-size:11px}
+.modal-footer{display:flex;justify-content:flex-end;padding:16px 26px;border-top:1px solid #edf0ee}
+.modal-footer .directory-action{min-width:78px}
+@media(max-width:600px){
+.professional-agenda-modal{width:calc(100vw - 24px)!important}
+.modal-titlebar,.agenda-summary,.modal-section-heading,.professional-appointments,.modal-footer{padding-left:18px;padding-right:18px}
+.professional-appointment{grid-template-columns:54px minmax(0,1fr);gap:10px}
+.appointment-status{grid-column:2;width:max-content}
+}
