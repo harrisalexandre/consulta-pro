@@ -45,20 +45,26 @@ export function AutomationsPage() {
   const [advance, setAdvance] = useState('1440')
   const [templateId, setTemplateId] = useState('')
   const [enabled, setEnabled] = useState(true)
+  const [sentCount, setSentCount] = useState(0)
+  const [failedCount, setFailedCount] = useState(0)
 
   async function load() {
     if (!supabase || !activeCompany) return
     setLoading(true); setError('')
     const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-    const [a, t, d] = await Promise.all([
+    const [a, t, d, sent, failed] = await Promise.all([
       supabase.from('automations').select('*').eq('company_id', activeCompany.id).order('name'),
       supabase.from('message_templates').select('id,name,active,body').eq('company_id', activeCompany.id).order('name'),
-      supabase.from('automation_dispatches').select('id,automation_id,appointment_id,recipient_number,status,scheduled_for,sent_at,error_message,created_at').eq('company_id', activeCompany.id).gte('created_at', since).order('created_at', { ascending: false }).limit(100)
+      supabase.from('automation_dispatches').select('id,automation_id,appointment_id,recipient_number,status,scheduled_for,sent_at,error_message,created_at').eq('company_id', activeCompany.id).gte('created_at', since).order('created_at', { ascending: false }).limit(100),
+      supabase.from('automation_dispatches').select('id', { count: 'exact', head: true }).eq('company_id', activeCompany.id).gte('created_at', since).in('status', ['sent', 'completed', 'delivered']),
+      supabase.from('automation_dispatches').select('id', { count: 'exact', head: true }).eq('company_id', activeCompany.id).gte('created_at', since).in('status', ['failed', 'error'])
     ])
-    if (a.error || t.error || d.error) setError('Não foi possível carregar os dados das automações.')
+    if (a.error || t.error || d.error || sent.error || failed.error) setError('Não foi possível carregar os dados das automações.')
     setItems(a.data || [])
     setTemplates((t.data || []).filter((x: Template) => x.active))
     setDispatches(d.data || [])
+    setSentCount(sent.count || 0)
+    setFailedCount(failed.count || 0)
     setLoading(false)
   }
 
@@ -66,8 +72,6 @@ export function AutomationsPage() {
 
   const activeCount = items.filter(x => x.enabled).length
   const pausedCount = items.filter(x => !x.enabled).length
-  const sentCount = dispatches.filter(x => ['sent', 'completed', 'delivered'].includes(x.status)).length
-  const failedCount = dispatches.filter(x => ['failed', 'error'].includes(x.status)).length
 
   const filtered = useMemo(() => items.filter(item => {
     const text = `${item.name} ${item.message_template}`.toLowerCase()
@@ -95,9 +99,9 @@ export function AutomationsPage() {
     .replace(/{{empresa}}/g, activeCompany?.name || 'Consultório')
 
   function newAutomation(template?: Template) {
-    setEditing(null); setName(template?.name || '');
+    setEditing(null); setName(template?.name || '')
     setType(template?.name === 'Confirmação de consulta' ? 'appointment_confirmation' : template?.name === 'Pós-consulta' ? 'appointment_followup' : 'appointment_reminder')
-    setAdvance(template?.name === 'Pós-consulta' ? '1440' : '1440'); setTemplateId(template?.id || ''); setEnabled(true); setError(''); setOpen(true)
+    setAdvance('1440'); setTemplateId(template?.id || ''); setEnabled(true); setError(''); setOpen(true)
   }
 
   function editAutomation(item: Automation) {
