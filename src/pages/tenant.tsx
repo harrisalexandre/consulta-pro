@@ -45,7 +45,7 @@ function TemplatesPage(){
    ['Pesquisa de satisfação','Pós-consulta','Pedido simples de avaliação.','Olá, {{nome}}! 😊\\n\\nComo foi sua experiência conosco? Sua opinião nos ajuda a melhorar nosso atendimento.',['nome']],
    ['Aniversário','Aniversário','Mensagem de relacionamento com pacientes.','Olá, {{nome}}! 🎉\\n\\nDesejamos um feliz aniversário e muita saúde. Conte sempre conosco!',['nome']]
   ];
-  const payloads=seed.map(([name,category,description,body,variables])=>({company_id:activeCompany.id,name,category,description,body,active:true,components:[{id:crypto.randomUUID(),type:'text',text:body}],variables}));
+  const payloads=seed.map(([name,category,description,body,variables])=>({company_id:activeCompany.id,name,category,description,content:body,active:true,components:[{id:crypto.randomUUID(),type:'text',text:body}],variables}));
   const ins=await supabase.from('message_templates').insert(payloads).select('*');if(!ins.error)rows=ins.data||payloads;else setError('Não foi possível criar os templates padrão.');
  }
  setItems(rows);setLoading(false)} useEffect(()=>{load()},[activeCompany?.id]);
