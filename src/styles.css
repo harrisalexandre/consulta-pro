@@ -474,3 +474,6 @@
   .wa-qr-box img{width:190px!important;height:190px!important}
   .wa-filter{width:100%}
 }
+
+/* Access loading */
+.access-loading{min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#ffffff 0,#f5f7f4 55%,#eef3ef 100%);padding:24px}.access-loading-card{width:min(380px,100%);display:flex;flex-direction:column;align-items:center;text-align:center;padding:42px 30px;background:rgba(255,255,255,.88);border:1px solid #dfe5e0;border-radius:22px;box-shadow:0 20px 60px rgba(29,57,43,.08)}.access-loading-card .app-logo{justify-content:center}.access-loading-card .app-logo img{width:52px;height:52px;border-radius:15px;flex-basis:52px}.access-spinner{width:30px;height:30px;margin:30px 0 18px;border:3px solid #dfe8e2;border-top-color:#315f52;border-radius:50%;animation:access-spin .8s linear infinite}.access-loading-card h1{margin:0;font-size:20px;letter-spacing:-.3px}.access-loading-card p{margin:7px 0 0;color:#77807a;font-size:12px}@keyframes access-spin{to{transform:rotate(360deg)}}
