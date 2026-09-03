@@ -104,7 +104,7 @@ function WhatsAppPage(){
     <section className="panel whatsapp-panel">
       <div className="head">
         <div><h2>WhatsApp</h2><p>Conecte o número do consultório para enviar mensagens aos pacientes.</p></div>
-        {status==='error'&&<span className="wa-warning" title="Não foi possível atualizar a conexão"><CircleAlert size={20}/></span>}
+        {(status==='error'||error)&&<span className="wa-warning" title="Não foi possível atualizar a conexão"><CircleAlert size={20}/></span>}
       </div>
       {loading?<div className="empty-box">Carregando...</div>:<>
         {connected&&<div className="wa-status-card">
@@ -136,7 +136,6 @@ function WhatsAppPage(){
         ? <div className="empty-box wa-empty"><p>Nenhuma mensagem encontrada.</p></div>
         : filtered.map(m=><div className="row" key={m.id}><span><b>{m.direction==='outbound'?'Enviada':'Recebida'} · {m.recipient_number||'Número não informado'}</b><small>{m.body||'Sem conteúdo'} · {formatZoned(m.created_at,activeCompany?.timezone||BR_TIMEZONE)}</small></span><i>{m.status||'registrada'}</i></div>)}
     </section>
-    {error&&<div className="wa-error-generic">Não foi possível concluir a operação. Tente novamente.</div>}
     {success&&<div className="form-success">{success}</div>}
   </TenantPage>
 }
