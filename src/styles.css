@@ -440,3 +440,12 @@
   .agenda-month-full .month-cell{min-height:96px;padding:7px}
   .agenda-month-full .month-event{font-size:9px;padding:4px 5px}
 }
+
+/* Compact month calendar */
+.agenda-month-full .month-grid{grid-auto-rows:minmax(72px,1fr)}
+.agenda-month-full .month-cell{min-height:72px;padding:7px;gap:5px}
+.agenda-month-full .month-cell-head strong{font-size:12px}
+.agenda-month-full .month-count{min-width:17px;height:17px;font-size:9px}
+.agenda-month-full .month-event{padding:3px 5px;font-size:9px;line-height:1.15}
+.agenda-month-full .month-holiday{font-size:8px}
+@media(max-width:700px){.agenda-month-full .month-grid{grid-auto-rows:minmax(72px,1fr)}.agenda-month-full .month-cell{min-height:72px;padding:6px}.agenda-month-full .month-event{font-size:8px;padding:3px 4px}}
