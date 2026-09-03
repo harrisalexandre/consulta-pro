@@ -8,7 +8,7 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { autoRefreshToken: f
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "access-control-allow-origin": "https://consulta-pro.onrender.com", "access-control-allow-headers": "authorization, x-client-info, apikey, content-type", "access-control-allow-methods": "POST, OPTIONS" },
   })
 
 async function authorize(req: Request, companyId: string) {
@@ -151,6 +151,16 @@ Deno.serve(async (req) => {
     }
 
     if (action === "start") {
+      let existingState = ""
+      try {
+        const existing = await evolution("/instance/connectionState/" + encodeURIComponent(instance))
+        existingState = String(existing?.instance?.state || existing?.state || "").toLowerCase()
+      } catch {}
+
+      if (existingState === "close" || existingState === "closed") {
+        try { await evolution("/instance/delete/" + encodeURIComponent(instance), { method: "DELETE" }) } catch {}
+      }
+
       try {
         await evolution("/instance/create", {
           method: "POST",
@@ -158,6 +168,13 @@ Deno.serve(async (req) => {
             instanceName: instance,
             qrcode: true,
             integration: "WHATSAPP-BAILEYS",
+            webhook: {
+              enabled: true,
+              url: SUPABASE_URL + "/functions/v1/receive-evolution-webhook",
+              webhookByEvents: false,
+              webhookBase64: false,
+              events: ["QRCODE_UPDATED", "MESSAGES_UPSERT", "CONNECTION_UPDATE", "SEND_MESSAGE"],
+            },
           }),
         })
       } catch (error) {
