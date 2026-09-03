@@ -30,7 +30,25 @@ function TemplatesPage(){
   const{activeCompany}=useTenant(); const[items,setItems]=useState<any[]>([]); const[loading,setLoading]=useState(true); const[open,setOpen]=useState(false); const[editing,setEditing]=useState<any>(null); const[error,setError]=useState(''); const[success,setSuccess]=useState(''); const[busy,setBusy]=useState(false); const[name,setName]=useState(''); const[description,setDescription]=useState(''); const[category,setCategory]=useState('Geral'); const[blocks,setBlocks]=useState<any[]>([]); const[selected,setSelected]=useState(0); const[filter,setFilter]=useState(''); const[testPhone,setTestPhone]=useState('');
   const variables=[['nome','Nome do paciente'],['telefone','Telefone'],['data','Data da consulta'],['hora','Horário'],['profissional','Profissional'],['especialidade','Especialidade'],['empresa','Nome do consultório'],['link_confirmacao','Link de confirmação'],['link_cancelamento','Link de cancelamento'],['link_reagendamento','Link de reagendamento']];
   const samples:any={nome:'Alexandre',telefone:'+55 11 99999-9999',data:'03/09/2026',hora:'14:30',profissional:'Dra. Mariana',especialidade:'Clínica Geral',empresa:activeCompany?.name||'Clínica Consulta Pro',link_confirmacao:'https://consulta.pro/confirmar',link_cancelamento:'https://consulta.pro/cancelar',link_reagendamento:'https://consulta.pro/remarcar'};
-  async function load(){if(!supabase||!activeCompany)return;setLoading(true);setError('');const{data,error}=await supabase.from('message_templates').select('*').eq('company_id',activeCompany.id).order('created_at',{ascending:false});if(error)setError(error.message);setItems(data||[]);setLoading(false)} useEffect(()=>{load()},[activeCompany?.id]);
+  async function load(){if(!supabase||!activeCompany)return;setLoading(true);setError('');
+ const{data,error}=await supabase.from('message_templates').select('*').eq('company_id',activeCompany.id).order('created_at',{ascending:false});
+ if(error){setError(error.message);setItems([]);setLoading(false);return}
+ let rows=data||[];
+ if(rows.length===0){
+  const seed=[
+   ['Confirmação de consulta','Confirmação','Confirme a consulta quando o agendamento for criado.','Olá, {{nome}}! 👋\\n\\nSua consulta está agendada para {{data}} às {{hora}} com {{profissional}}.\\n\\nPor favor, confirme sua presença.',['nome','data','hora','profissional']],
+   ['Lembrete de consulta','Lembrete','Lembrete automático antes da consulta.','Olá, {{nome}}! Este é um lembrete da sua consulta amanhã, {{data}}, às {{hora}}, com {{profissional}}.\\n\\nSe precisar remarcar, fale conosco.',['nome','data','hora','profissional']],
+   ['Consulta hoje','Lembrete','Aviso no dia da consulta.','Olá, {{nome}}! Sua consulta é hoje, às {{hora}}, com {{profissional}}.\\n\\nEsperamos você!',['nome','hora','profissional']],
+   ['Consulta cancelada','Cancelamento','Aviso de cancelamento.','Olá, {{nome}}. Sua consulta de {{data}} às {{hora}} foi cancelada.\\n\\nEntre em contato conosco para escolher um novo horário.',['nome','data','hora']],
+   ['Reagendamento de consulta','Reagendamento','Mensagem para confirmar uma nova data.','Olá, {{nome}}! Sua consulta foi reagendada para {{data}} às {{hora}} com {{profissional}}.',['nome','data','hora','profissional']],
+   ['Pós-consulta','Pós-consulta','Acompanhamento após o atendimento.','Olá, {{nome}}! Esperamos que seu atendimento tenha sido ótimo.\\n\\nSe precisar de qualquer orientação, estamos à disposição.',['nome']],
+   ['Pesquisa de satisfação','Pós-consulta','Pedido simples de avaliação.','Olá, {{nome}}! 😊\\n\\nComo foi sua experiência conosco? Sua opinião nos ajuda a melhorar nosso atendimento.',['nome']],
+   ['Aniversário','Aniversário','Mensagem de relacionamento com pacientes.','Olá, {{nome}}! 🎉\\n\\nDesejamos um feliz aniversário e muita saúde. Conte sempre conosco!',['nome']]
+  ];
+  const payloads=seed.map(([name,category,description,body,variables])=>({company_id:activeCompany.id,name,category,description,body,active:true,components:[{id:crypto.randomUUID(),type:'text',text:body}],variables}));
+  const ins=await supabase.from('message_templates').insert(payloads).select('*');if(!ins.error)rows=ins.data||payloads;else setError('Não foi possível criar os templates padrão.');
+ }
+ setItems(rows);setLoading(false)} useEffect(()=>{load()},[activeCompany?.id]);
   function reset(){setEditing(null);setName('');setDescription('');setCategory('Geral');setBlocks([{id:crypto.randomUUID(),type:'text',text:'Olá, {{nome}}! 👋\n\nSua consulta está confirmada para {{data}} às {{hora}} com {{profissional}}.'}]);setSelected(0);setError('');setSuccess('');setTestPhone('');setOpen(true)}
   function edit(t:any){setEditing(t);setName(t.name||'');setDescription(t.description||'');setCategory(t.category||'Geral');let b=t.components||t.content?.blocks;if(typeof b==='string'){try{b=JSON.parse(b)}catch{b=null}}if(!Array.isArray(b)){b=t.body?[{id:crypto.randomUUID(),type:'text',text:t.body}]:[{id:crypto.randomUUID(),type:'text',text:''}]}setBlocks(b);setSelected(0);setError('');setSuccess('');setOpen(true)}
   function add(type:string){const b=type==='text'?{id:crypto.randomUUID(),type,text:''}:type==='button'?{id:crypto.randomUUID(),type,text:'Confirmar consulta',url:''}:{id:crypto.randomUUID(),type,text:''};setBlocks(v=>[...v,b]);setSelected(blocks.length)}
