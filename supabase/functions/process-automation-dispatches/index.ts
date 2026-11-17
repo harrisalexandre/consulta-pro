@@ -11,6 +11,15 @@ const json = (x: unknown, s = 200) =>
 
 const FUSO_PADRAO = "America/Sao_Paulo";
 
+/**
+ * Cadastros guardam o numero brasileiro sem DDI (DDD + numero, 10 ou 11
+ * digitos). A Evolution exige o DDI: sem ele "55991623923" vira outro pais.
+ */
+function numeroWhatsapp(numero: string) {
+  const d = String(numero).replace(/\D/g, "");
+  return d.length === 10 || d.length === 11 ? `55${d}` : d;
+}
+
 async function send(instance: string, number: string, text: string) {
   const base = (Deno.env.get("EVOLUTION_API_URL") || "").replace(/\/$/, "");
   const key = Deno.env.get("EVOLUTION_API_KEY") || "";
@@ -18,7 +27,7 @@ async function send(instance: string, number: string, text: string) {
   const r = await fetch(`${base}/message/sendText/${encodeURIComponent(instance)}`, {
     method: "POST",
     headers: { apikey: key, "Content-Type": "application/json" },
-    body: JSON.stringify({ number: String(number).replace(/\D/g, ""), text }),
+    body: JSON.stringify({ number: numeroWhatsapp(number), text }),
   });
   const raw = await r.text();
   if (!r.ok) throw new Error(`Evolution API ${r.status}: ${raw.slice(0, 500)}`);

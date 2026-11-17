@@ -31,3 +31,4 @@ Alternativa via Bruno/Postman: `GET {URL}/instance/connect/{instancia}` com head
 - O webhook precisa enviar header `apikey`, senão `receive-evolution-webhook` responde 401.
 - Não chamar `/instance/connect` enquanto o pareamento conclui (estado `close` logo após o scan) — derruba a conexão e o celular mostra "não é possível conectar novos dispositivos".
 - Edge Functions não são publicadas por commit; precisam de deploy no Supabase.
+- Números de pacientes são salvos sem DDI; o envio adiciona `55` quando o número tem 10 ou 11 dígitos.
