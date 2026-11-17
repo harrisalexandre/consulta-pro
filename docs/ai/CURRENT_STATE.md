@@ -1,118 +1,163 @@
 # Consulta Pro — Estado atual
 
-**Atualizado em:** 29/08/2026  
+**Atualizado em:** 17/11/2026
 **Branch canônica:** `main`
+**Produção:** https://consulta-pro.onrender.com/
 
-## 1. Onde estamos
-O projeto já possui fundação funcional de autenticação, tenant e área administrativa. O fluxo principal de operação está sendo fechado módulo a módulo.
+> Este documento foi reescrito após uma auditoria que encontrou divergência total
+> entre a documentação anterior e o código em `main`. As seções antigas
+> declaravam concluídas funcionalidades que não existiam na working tree.
+> O histórico cronológico continua em `docs/CURRENT.md`.
 
-## 2. Concluído
-### Fundação
-- Login via Supabase Auth.
-- Sessão persistente.
-- Proteção de rotas.
-- Separação entre área Superadmin e área da empresa.
-- Tenant ativo persistido.
-- Rota desconhecida retorna para a landing.
+## 1. O que aconteceu — regressão de 01/09/2026
 
-### Superadmin
-- Dashboard global.
-- CRUD inicial de empresas.
-- Cadastro de primeiro acesso da empresa via Edge Function.
-- Gestão inicial de usuários da empresa, incluindo edição e reset de senha pelo fluxo privilegiado.
-- Tela de permissões existente.
+O `src/App.tsx` foi destruído por quatro commits consecutivos rotulados `fix: restore ...`:
 
-### Operação
-- Dashboard do consultório.
-- Pacientes: listar, buscar, criar, editar e ativar/inativar.
-- Histórico de atendimentos do paciente.
-- Profissionais: listar, buscar, criar, editar e ativar/inativar.
-- Histórico de atendimentos do profissional.
-- Agenda: calendário diário, criação, edição, confirmação e cancelamento.
-- WhatsApp: configuração por tenant, templates e histórico.
-- Automações: CRUD por tenant, gatilho, antecedência, canal, template e ativação/desativação.
+| commit | data | linhas | bytes | queries Supabase |
+| --- | --- | --- | --- | --- |
+| `861a879` | 01/09 | 571 | 82.358 | 37 |
+| `0042168` | 01/09 | 50 | 60.023 | 30 |
+| `69abeab` | 01/09 | 44 | 13.832 | 1 |
+| `0591606` | 01/09 | 28 | 11.323 | 1 |
+| `4b2bf79` | 01/09 | 29 | 9.991 | 1 |
 
-## 3. Documentação
-A árvore `docs/ai/` foi criada nesta etapa com:
-- `CONTEXT.md`;
-- `CURRENT_STATE.md`;
-- `BUSINESS_RULES.md`;
-- `ARCHITECTURE.md`;
-- `SECURITY.md`;
-- `DECISIONS.md`.
+Causa raiz: `861a879` continha **6 erros de sintaxe** introduzidos por escape de
+script — um `\n` literal (barra invertida + n) fora de string na linha 346 e
+quatro `{'}'}` super-escapados na linha 392. Em vez de corrigir os 6 caracteres,
+as tentativas de conserto apagaram ~540 linhas.
 
-`AGENTS.md` define o protocolo de trabalho dos agentes.
+Nenhum documento registrou a perda: o último commit de doc (`7bd44d0`) é
+**anterior** à destruição. A documentação passou a descrever com fidelidade um
+código que só existia no histórico git.
 
-## 4. Atividade desta etapa — WhatsApp
-- Revisada a tela de WhatsApp usando as tabelas existentes.
-- Configuração por tenant: provedor, instância, número e status.
-- Templates: criação, edição, ativação/desativação.
-- Histórico: últimas 50 mensagens, status, direção, número e filtro.
-- Corrigido o fluxo de abertura/fechamento do formulário de template.
-- **Importante:** esta etapa não inventa nem implementa um endpoint de envio real; a integração de transporte deve ser validada contra a Edge Function/infra existente.
+O build continuou **verde** durante toda a regressão (`tsc -b` exit 0, `vite build` OK).
+`noUnusedLocals` está desligado e declarações de nível de módulo não usadas nunca
+são erro de compilação em TypeScript — por isso 13 telas ficaram órfãs sem um
+único aviso.
 
-## 5. Atividade desta etapa — Automações
-- Tela de automações revisada e conectada às tabelas existentes.
-- CRUD da regra: criar, editar, ativar/desativar e excluir.
-- Validação de template ativo para canal WhatsApp.
-- Resumo de automações ativas e disparos por status.
-- Histórico dos últimos 50 registros de `automation_dispatches`.
-- Estados de carregamento, erro e vazio tratados.
-- **Pendente:** não existe Edge Function de execução listada atualmente no projeto Supabase; portanto esta etapa não afirma que os disparos estão sendo executados automaticamente.
+## 2. Restauração aplicada
 
-## 6. Atividade desta etapa — Configurações
-- Tela `/configuracoes` deixou de ser placeholder.
-- Dados completos do consultório: identificação, contato e endereço.
-- Edição do perfil autenticado.
-- Alteração opcional de senha com olhinho de privacidade.
-- Persistência via Supabase respeitando o tenant ativo.
+`src/App.tsx` recuperado de `861a879` com os 6 erros de sintaxe corrigidos.
+Nenhum outro arquivo precisou de recuperação: `styles.css`, `Landing.tsx`,
+`TenantContext.tsx`, `lib/supabase.ts`, `main.tsx`, `mock.ts` e `types.ts` no HEAD
+eram blobs **idênticos** a `861a879`.
 
-## 7. Ajuste transversal — Fuso horário
-- `companies.timezone` criado com padrão `America/Sao_Paulo`.
-- Configurações agora permitem selecionar o fuso do consultório.
-- O fuso é persistido por tenant e deve ser usado como referência para agenda e automações.
-- **Pendente:** revisar todos os pontos de conversão/exibição de datas e o executor das automações para garantir uso consistente do timezone do tenant.
+Estado verificado após a restauração:
 
-## 8. Segurança temporal — concluída
-- O horário atual usado pelo frontend pode ser obtido de `public.server_now()`, diretamente no PostgreSQL/Supabase, em vez do relógio do PC.
-- Agenda converte horários digitados pelo usuário usando o `timezone` do tenant antes de persistir em UTC.
-- Agenda e Dashboard calculam o início/fim do dia no fuso do consultório.
-- Exibição de horários da agenda usa o fuso do tenant.
-- Isso impede que alterar o relógio local do computador faça o sistema considerar outro “agora” para estas operações.
-- **Regra arquitetural:** automações que efetivamente enviam mensagens devem ser disparadas por backend/Edge Function usando `now()` do servidor + `companies.timezone`; nunca pelo relógio do navegador.
+| Métrica | Antes (`4b2bf79`) | Depois |
+| --- | --- | --- |
+| Linhas / bytes | 29 / 9.991 | 573 / 82.341 |
+| Rotas | 11 | 29 |
+| Rotas `admin/*` | 0 | 9 |
+| `RoleGate` montado | não | sim (2×) |
+| Tabelas acessadas | 3 | 11 |
+| Leituras (`.from`) | 1 | 37 |
+| Escritas | 0 | 13 (4 insert, 7 update, 1 delete, 1 upsert) |
+| Edge Functions invocadas | 0 | 3 |
+| RPC | 0 | `server_now`, `superadmin_create_company` |
+| `setLoading` / `setError` | 2 | 17 / 58 |
+| Componentes | 23 (13 órfãos) | 30 |
 
-## 9. Etapa 8 de 13 — Baseline de arquitetura, integrações, segurança e desempenho
-Esta etapa foi adicionada ao plano sem reiniciar o progresso. O Karate ERP será usado como referência técnica comprovada, adaptando os padrões ao modelo multi-tenant do Consulta Pro.
+Validação executada: `npm ci` → ok; `npx tsc -b --force` → **0 erros**;
+`npm run build` → ok, 1.635 módulos, bundle 294,91 kB (84,31 kB gzip).
 
-- Capacitor: adotar como padrão para transformar a aplicação React em Android/iOS.
-- WhatsApp/WAHA: validar a implementação efetivamente usada no Karate antes de conectar o transporte real do Consulta Pro.
-- Segurança: reaproveitar padrões comprovados do Karate para autenticação, secrets, permissões, CI e auditoria de dependências, adaptando-os ao RLS/tenant isolation.
-- CI/CD: incorporar instalação reprodutível (npm ci) e auditoria de dependências como baseline.
-- Mobile: considerar push notifications e plugins Capacitor do Karate somente quando houver requisito real.
-- Desempenho: revisar bundle, consultas, índices, paginação, cache e chamadas repetidas.
-- Regra: uma integração só é considerada pronta quando houver transporte, autenticação, persistência necessária, tratamento de erro e teste do fluxo completo.
-- Resultado esperado: checklist técnica do Karate aplicada ao Consulta Pro e lacunas registradas antes das integrações reais.
+## 3. O que está de fato implementado no frontend
 
-## 10. Onde está o desenvolvimento agora
-**Fase atual: fechamento operacional e validação.**
+- Landing pública em `/` (`Landing.tsx`, 841 linhas, CSS próprio).
+- Login Supabase em `/login`, com loading e erro.
+- `SessionGate`: guard de sessão com `onAuthStateChange`.
+- `TenantProvider`: resolve tenant com timeout de 8s, trata superadmin, persiste
+  empresa ativa em `localStorage`.
+- `RoleGate`: separação superadmin / empresa por rota.
+- Área empresa: dashboard, agenda, pacientes, profissionais, WhatsApp,
+  automações, configurações.
+- Agenda: visões Dia/Semana/Mês/Lista, mini-calendário, filtros
+  (paciente/profissional/status/tipo), indicadores do dia, posicionamento por
+  duração com tratamento de sobreposição.
+- Área superadmin: dashboard, empresas (lista/nova/detalhe), usuários,
+  permissões, WhatsApp, mensagens, automações, atividade, configurações.
 
-A base visual e os CRUDs principais existem, mas ainda precisam de revisão sistemática de integração, UX, estados, autorização e fluxos entre telas.
+## 4. Backend — risco sistêmico aberto
 
-## 11. Próximas etapas
-1. **WhatsApp real:** revisar conexão, templates, histórico, estados e preparar/validar envio pela integração existente.
-2. **Automações:** validar execução real, histórico de disparos, deduplicação, retries e associação com agendamentos.
-3. **Configurações:** transformar a tela em configuração real da empresa, não placeholder.
-4. **Usuários e permissões:** fechar edição, status, reset de senha, papéis e autorização por tenant.
-5. **Dashboard/KPIs:** validar métricas reais de dia/semana/mês e estados de erro.
-6. **Revisão de rotas:** garantir acesso direto a todas as rotas sem tela branca/404 e com fallback correto.
-7. **UX completa:** revisar loading, empty, error, feedback, modais, responsividade e consistência dos ícones.
-8. **Segurança/RLS:** auditoria completa do isolamento entre empresas e operações privilegiadas.
-9. **E2E:** executar os fluxos principais com usuário Superadmin e usuário de empresa.
-10. **README/deploy:** alinhar documentação final ao estado real.
+**O diretório `supabase/` nunca existiu no repositório.** Verificado em todos os
+209 commits do histórico: nenhuma migration, nenhuma Edge Function, nenhum
+`config.toml` jamais foi versionado.
 
-## 12. Pendências conhecidas
-- Nem todos os módulos possuem profundidade funcional equivalente.
-- Algumas telas administrativas ainda são placeholders.
-- Execução real de automações/WhatsApp precisa ser validada além do CRUD.
-- Dashboard precisa de validação de métricas e tratamento de falhas.
-- Ainda falta uma bateria E2E final.
+Consequências:
+- Schema, RLS e as Edge Functions existem **somente no projeto Supabase remoto**.
+- Sem code review, sem histórico, sem rollback, sem reprodução de ambiente.
+- As afirmações de `SECURITY.md` sobre isolamento por tenant são **inauditáveis
+  a partir do repositório**.
+- O frontend foi recuperável porque estava no git. O backend não tem essa rede.
+
+Além disso, a conta Supabase conectada na auditoria **não contém nenhum projeto
+do Consulta Pro** — o único projeto existente é de outro produto. O backend está
+em outra conta/organização, ou não existe mais. **Isto precisa ser confirmado
+antes de qualquer afirmação sobre RLS, cron, automações ou WhatsApp.**
+
+## 5. Defeitos conhecidos no código restaurado
+
+1. **Falso-vazio no `TenantLayout`.** O layout desestrutura só
+   `{activeCompany, companies, setActiveCompany}` e decide por `if(!activeCompany)`.
+   Carregando, erro de rede, RLS negando e vazio real colapsam todos na mesma tela
+   "Nenhuma empresa vinculada". O `TenantContext` expõe `loading`, que nunca é
+   consumido. Isso viola `BUSINESS_RULES.md` §UX 1-2 e `DECISIONS.md`.
+2. **`TenantProvider` envolve a landing pública**, disparando `auth.getUser()` no
+   carregamento de `/` para visitante anônimo.
+3. **CSS sem regra**: `company-select` (seletor de empresa) e `placeholder` são
+   usados sem nenhuma regra em `styles.css`.
+4. **`src/mock.ts` e `src/types.ts` são código morto.** `types.ts` usa `camelCase`
+   (`companyId`, `legalName`), incompatível com o schema real snake_case e com o
+   tipo `Company` do `TenantContext`. Dois modelos de domínio divergentes.
+5. **`tsconfig.app.json` e `tsconfig.node.json` são órfãos**: `tsconfig.json` não
+   tem `references`. Efeitos: `vite.config.ts` nunca é type-checado; o `target`
+   efetivo é ES2020, não o ES2022 escrito em `app.json`; endurecer regras nesses
+   arquivos não tem efeito nenhum.
+
+## 6. Débito de infraestrutura
+
+| Item | Estado |
+| --- | --- |
+| Testes | nenhum (0 arquivos, 0 runners, sem script `test`) |
+| ESLint | nenhum |
+| Prettier / editorconfig | nenhum — daí o código em uma linha por componente |
+| CI | nenhuma (`.github/` não existe; nunca existiu) |
+| `.env.example` | criado nesta etapa |
+| `engines` / `.nvmrc` | ausentes — Node não fixado (validado em v22.23.4) |
+| Reprodutibilidade | Render roda `npm install`, não `npm ci`: o lock não é garantido |
+| Code splitting | nenhum — 1 chunk único, sem `React.lazy` nem `manualChunks` |
+| Vulnerabilidades | 2 high: `vite` 6.4.3 (5 advisories) e `source-map-js` ≤1.2.1 (CVSS 7.5). Ambas de build/dev-server, não vão para o bundle. `vite@6.4.6` corrige dentro do `^6` |
+
+## 7. Onde o desenvolvimento está de verdade
+
+Pelo critério do próprio `AGENTS.md` — "uma tela só é pronta quando UI, ação,
+persistência, feedback, refresh, autorização e tenant estiverem conectados" — o
+código restaurado traz as telas de volta ao estado de 01/09/2026, mas **nenhuma
+foi validada com dados reais desde então**. A documentação anterior declarava
+"Etapa 8/13 concluída"; isso não foi verificado por execução.
+
+**Fase real: código restaurado, validação funcional pendente.**
+
+## 8. Próximos passos, em ordem
+
+1. **Confirmar onde vive o projeto Supabase do Consulta Pro.** Sem isso, nada
+   abaixo pode ser testado.
+2. **Versionar `supabase/`** — migrations + as Edge Functions. Maior risco aberto.
+3. Validar o build no Render com o commit atual e abrir `/` e `/login`.
+4. Conferir o vínculo em `company_users` para o usuário de teste (bug conhecido
+   "Nenhuma empresa vinculada").
+5. Corrigir o falso-vazio do `TenantLayout` consumindo `loading` e expondo erro
+   com retry.
+6. Configurar `EVOLUTION_API_URL` e `EVOLUTION_API_KEY` e validar QR/conexão.
+7. Exercitar CRUD real: paciente → profissional → agendamento → template →
+   automação → dispatch → histórico.
+8. Rede de segurança mínima: CI com `npm ci && npm run build`, ESLint com
+   `no-unused-vars`, e um smoke test de rota. Os itens 1-5 da seção 5 são
+   exatamente o tipo de regressão que isso teria pego.
+9. Auditoria de RLS e isolamento entre tenants, com o projeto correto em mãos.
+
+## 9. Regra que falhou e precisa valer
+
+`AGENTS.md` já dizia "Nunca declare uma validação que não foi executada". A
+documentação anterior declarou dezenas. Daqui para frente: nenhuma seção de
+estado afirma algo que não tenha saída de comando ou teste correspondente.

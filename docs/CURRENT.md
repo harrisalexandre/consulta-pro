@@ -335,3 +335,66 @@ Não alterar banco ou integrações de WhatsApp nesta etapa sem necessidade. A p
 - Mantida a leitura rápida sem transformar a Agenda em dashboard pesado.
 - Commit App: `147bb07`.
 - Commit CSS: `b022a3a`.
+
+
+### Auditoria independente e restauração do App.tsx — 17/11/2026
+
+Quatro auditorias independentes rodaram em paralelo sobre `main` em `4b2bf79`:
+arqueologia do histórico git, estado real do Supabase, divergência docs-vs-código
+e validação de build/dependências. As três que puderam concluir chegaram ao mesmo
+diagnóstico.
+
+**Achado principal: o frontend estava destruído e a documentação não registrou.**
+
+Em `4b2bf79` o `src/App.tsx` tinha 29 linhas e 9.991 bytes. Todas as sete telas de
+empresa e todas as seis telas administrativas eram funções que retornavam um
+`<h2>` e um `<p>`, e nenhuma estava montada em rota alguma. As oito rotas de tenant
+renderizavam `<TenantLayout/>` sem rota filha, deixando o `<Outlet/>` vazio: o
+usuário autenticado via sidebar e header com a área de conteúdo em branco. Não
+existia nenhuma rota `admin/*`. O `RoleGate` nunca era montado, então não havia
+autorização por rota. O app inteiro lia 3 tabelas (`profiles`, `companies`,
+`company_users`) e não executava nenhuma escrita, nenhum RPC e nenhuma Edge Function.
+
+**Causa raiz.** O último estado completo é `861a879` (571 linhas, 82.358 bytes,
+37 queries sobre 11 tabelas, 29 rotas). Ele contém 6 erros de sintaxe vindos de
+escape de script: um `\n` literal fora de string na linha 346 e quatro `{'}'}`
+super-escapados na linha 392. Quatro commits rotulados `fix: restore ...` em
+01/09/2026 tentaram consertar isso apagando código — `0042168` removeu 546 linhas
+de uma vez, `69abeab` levou o resto do CRUD.
+
+O build permaneceu verde durante toda a regressão. `noUnusedLocals` está desligado
+e, em TypeScript, declarações de nível de módulo não usadas nunca são erro de
+compilação — por isso 13 telas ficaram órfãs sem nenhum aviso.
+
+**Os documentos não inventaram commits.** Os 30 SHAs citados aqui existem todos no
+histórico. O problema é de data: o último commit de doc (`7bd44d0`) é anterior à
+destruição, então estes registros descrevem com fidelidade um código que saiu da
+working tree e ficou só no git.
+
+**Restauração aplicada.** `src/App.tsx` recuperado de `861a879` com os 6 erros de
+sintaxe corrigidos (1 `\n` literal + 4 `{'}'}`). Nenhum outro arquivo precisou de
+recuperação: `styles.css`, `Landing.tsx`, `TenantContext.tsx`, `lib/supabase.ts`,
+`main.tsx`, `mock.ts` e `types.ts` já eram blobs idênticos a `861a879` — ou seja,
+o CSS da Agenda v2/v3 nunca foi perdido, só ficou órfão.
+
+Resultado: 573 linhas, 82.341 bytes, 29 rotas (9 delas `admin/*`), `RoleGate`
+montado 2×, 11 tabelas, 37 leituras, 13 escritas, `rpc('server_now')`,
+`rpc('superadmin_create_company')` e as invocações de `manage-evolution-session`,
+`superadmin-create-company-user` e `superadmin-update-company-user`.
+
+Validação executada: `npm ci` ok; `npx tsc -b --force` com **0 erros**;
+`npm run build` ok (1.635 módulos, 294,91 kB / 84,31 kB gzip).
+
+**Backend: risco aberto.** O diretório `supabase/` nunca existiu em nenhum dos 209
+commits. Migrations e Edge Functions existem só na nuvem, sem versionamento, sem
+review e sem rollback. Pior: a conta Supabase conectada na auditoria não contém
+nenhum projeto do Consulta Pro — o único projeto é de outro produto. Confirmar em
+qual conta/organização o projeto vive é pré-requisito para qualquer teste de RLS,
+cron, automações ou WhatsApp.
+
+**Também nesta etapa:** removido o arquivo `hello world` (12 bytes, versionado
+desde o commit mais antigo do repo), criado `.env.example`, e README e
+`docs/ai/CURRENT_STATE.md` reescritos para o estado real, com a URL de produção.
+
+**Não validado:** nada foi exercitado com dados reais. O build compila e serve; não
+se afirma aqui que qualquer fluxo funciona ponta a ponta.

@@ -2,6 +2,13 @@
 
 SaaS multi-tenant para gestão de consultórios e clínicas.
 
+**Produção:** https://consulta-pro.onrender.com/
+
+| Ambiente | URL | Rota de entrada |
+| --- | --- | --- |
+| Landing pública | https://consulta-pro.onrender.com/ | `/` |
+| Login | https://consulta-pro.onrender.com/login | `/login` |
+
 ## Arquitetura
 - React + TypeScript + Vite
 - Supabase Auth + PostgreSQL + RLS
@@ -19,9 +26,14 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 
 ## Deploy Render
-Build: npm install && npm run build
-Publish directory: dist
-SPA Rewrite: /* -> /index.html
+- URL de produção: https://consulta-pro.onrender.com/
+- Branch: `main` (deploy automático a cada push)
+- Build: `npm install && npm run build`
+- Publish directory: `dist`
+- SPA Rewrite: `/* -> /index.html` (ver `public/_redirects`)
+- Variáveis obrigatórias no Render: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`
+
+Sem as duas variáveis o cliente Supabase é inicializado como `null` e a aplicação cai no caminho "Supabase não configurado" — a landing carrega, mas o login não funciona.
 
 ## Desenvolvimento
 npm install
@@ -42,8 +54,8 @@ O desenvolvimento segue por fases e uma fase só é considerada concluída quand
 1. Fundação: autenticação, sessão persistente, rotas, tenant, RBAC e RLS.
 2. Superadmin: dashboard global, empresas, usuários e permissões.
 3. Onboarding: configuração do consultório e primeiro Owner.
-4. Operação: profissionais, pacientes e agenda com CRUD real. **Base atual:** pacientes e profissionais possuem criação, edição, status e busca; agenda possui criação, edição, confirmação e cancelamento.
-5. Comunicação: WhatsApp, templates e histórico de mensagens. **Base atual:** configuração do WhatsApp, CRUD de templates e leitura do histórico já persistem no Supabase por tenant. Automações possuem CRUD por tenant, com gatilho, antecedência, canal, template e ativação/desativação.
+4. Operação: profissionais, pacientes e agenda com CRUD real.
+5. Comunicação: WhatsApp, templates e histórico de mensagens.
 6. Automações: gatilhos, regras, execução e histórico.
 7. Qualidade: loading, empty/error states, responsividade e acesso direto às rotas.
 8. Segurança: revisão de RLS, autorização e isolamento entre tenants.
@@ -55,10 +67,24 @@ Antes de criar uma tela ou rota, verificar se ela já existe. Não considerar um
 
 
 ## Estado atual
-- Login Supabase com sessão persistente e proteção por rota.
-- Superadmin: dashboard global, empresas, acessos e permissões.
-- Empresa: troca de tenant persistida no navegador.
-- Pacientes: listar, buscar, criar, editar e ativar/inativar.
-- Profissionais: listar, buscar, criar, editar e ativar/inativar.
-- Agenda: calendário diário, criação, edição, confirmação e cancelamento.
-- WhatsApp: configuração por tenant, templates de mensagens e histórico das últimas mensagens registrados no Supabase.\n- Automações: CRUD e execução ainda serão aprofundados na próxima fase.
+
+Estado detalhado e auditado em [`docs/ai/CURRENT_STATE.md`](docs/ai/CURRENT_STATE.md).
+Histórico cronológico em [`docs/CURRENT.md`](docs/CURRENT.md).
+
+**Implementado no frontend** (código presente e roteado, compila e serve):
+- Landing pública em `/` e login Supabase em `/login`.
+- `SessionGate` (sessão) e `RoleGate` (separação superadmin/empresa por rota).
+- Tenant resolvido com timeout, superadmin-aware, empresa ativa persistida no navegador.
+- Área empresa: dashboard, agenda, pacientes, profissionais, WhatsApp, automações, configurações.
+- Agenda: visões Dia/Semana/Mês/Lista, mini-calendário, filtros, indicadores do dia, posicionamento por duração com sobreposição.
+- Área superadmin: dashboard, empresas (lista/nova/detalhe), usuários, permissões, WhatsApp, mensagens, automações, atividade, configurações.
+
+**Não validado.** O build compila (`tsc -b` sem erros, `vite build` ok), mas nenhum
+fluxo foi exercitado com dados reais. Compilar não é funcionar.
+
+**Riscos abertos:**
+- `supabase/` **nunca foi versionado** — migrations e Edge Functions existem só na nuvem, sem review nem rollback.
+- A conta Supabase auditada não contém projeto do Consulta Pro; é preciso confirmar onde o backend vive.
+- `TenantLayout` colapsa loading, erro e vazio real na mesma tela "Nenhuma empresa vinculada".
+- Sem testes, sem lint, sem CI. A regressão de 01/09/2026 (perda de ~540 linhas) passou com build verde.
+- 2 vulnerabilidades high em dependências de build (`vite`, `source-map-js`), fora do bundle de produção.
