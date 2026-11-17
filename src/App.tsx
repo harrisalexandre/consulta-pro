@@ -437,8 +437,7 @@ function WhatsAppPage(){
     if(!supabase||!activeCompany)return;
     setBusy(true);setError('');setSuccess('');
     const{data,error}=await supabase!.functions.invoke('manage-evolution-session',{body:{action,company_id:activeCompany.id}});
-    if(error){setError(error.message||'Não foi possível comunicar com o WhatsApp.');setBusy(false);return}
-    if(data?.error){setError(data.error);setBusy(false);return}
+    if(error||data?.error){setError('Não foi possível conectar o WhatsApp. Tente novamente em instantes.');setBusy(false);return}
     if(data?.qr){
       const q=data.qr?.value||data.qr?.qr||data.qr?.data||data.qr;
       if(typeof q==='string')setQr(q.startsWith('data:')?q:`data:image/png;base64,${q}`);
@@ -458,12 +457,12 @@ function WhatsAppPage(){
 
   return <TenantPage title="WhatsApp" description="Conecte o WhatsApp do consultório e gerencie mensagens padrão.">
     <section className="panel">
-      <div className="head"><div><h2>Conexão</h2><p>Uma sessão Evolution exclusiva para este consultório.</p></div><i>{statusLabel}</i></div>
+      <div className="head"><div><h2>Conexão</h2><p>Conexão exclusiva do WhatsApp deste consultório.</p></div><i>{statusLabel}</i></div>
       {loading?<div className="empty-box">Carregando...</div>:<>
         {item?.status==='connected'&&<div className="wa"><Wifi size={22}/><span><b>{item.phone_number||'WhatsApp conectado'}</b><small>Última sincronização: {item.last_sync_at?formatZoned(item.last_sync_at,activeCompany?.timezone||BR_TIMEZONE):'—'}</small></span></div>}
         {item?.status==='connecting'&&<div className="empty-box"><Wifi size={30}/><h2>Aguardando conexão</h2><p>Escaneie o QR Code no WhatsApp.</p>{qr&&<img src={qr} alt="QR Code para conectar o WhatsApp" style={{width:260,height:260,objectFit:'contain',margin:'16px auto'}}/>}</div>}
         {item?.status!=='connected'&&item?.status!=='connecting'&&<div className="empty-box"><MessageCircle size={30}/><h2>WhatsApp desconectado</h2><p>Conecte uma sessão para habilitar os disparos automáticos.</p></div>}
-        {item?.status==='error'&&<div className="form-error">{item.last_error||'Falha na conexão.'}</div>}
+        {item?.status==='error'&&<div className="form-error">Falha na conexão. Tente conectar novamente.</div>}
         <div><button className="hero-btn" disabled={busy} onClick={()=>session(item?.status==='connecting'?'qr':'start')}>{busy?'Processando...':item?.status==='connected'?'Atualizar status':item?.status==='connecting'?'Atualizar QR':'Conectar WhatsApp'} <Wifi size={16}/></button>{item?.status==='connected'&&<button className="back-link" disabled={busy} onClick={()=>session('start')}>Reconectar</button>}</div>
       </>}
     </section>
