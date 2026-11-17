@@ -1,6 +1,7 @@
 # Consulta Pro — Estado atual
 
 **Atualizado em:** 17/11/2026
+**Projeto Supabase:** `swrsjwmuqxrzgapqiacb` (`consulta-pro`)
 **Branch canônica:** `main`
 **Produção:** https://consulta-pro.onrender.com/
 
@@ -90,10 +91,95 @@ Consequências:
   a partir do repositório**.
 - O frontend foi recuperável porque estava no git. O backend não tem essa rede.
 
-Além disso, a conta Supabase conectada na auditoria **não contém nenhum projeto
-do Consulta Pro** — o único projeto existente é de outro produto. O backend está
-em outra conta/organização, ou não existe mais. **Isto precisa ser confirmado
-antes de qualquer afirmação sobre RLS, cron, automações ou WhatsApp.**
+### Backend localizado e auditado — 17/11/2026
+
+Projeto: `swrsjwmuqxrzgapqiacb` (`consulta-pro`), org `uiuycznuzvecueilqzto`,
+região `us-west-2`, Postgres 17.6.1.147, status `ACTIVE_HEALTHY`, criado em
+28/07/2026. Não é a mesma org do outro produto do autor, o que explica a primeira
+auditoria não tê-lo encontrado.
+
+**O backend está em bom estado — bem melhor do que os docs sugeriam.**
+
+Tabelas (11, todas com RLS habilitado e todas com policy, nenhuma permissiva sem
+condição):
+
+| tabela | linhas |
+| --- | --- |
+| `companies` | 1 |
+| `profiles` | 2 |
+| `company_users` | 1 |
+| `professionals` | 1 |
+| `patients` | 1 |
+| `appointments` | 1 |
+| `whatsapp_integrations` | 1 |
+| `message_templates` | 8 |
+| `whatsapp_messages` | 0 |
+| `automations` | 0 |
+| `automation_dispatches` | 0 |
+
+**Isolamento por tenant verificado e correto:** `patients`, `professionals`,
+`appointments`, `whatsapp_messages`, `whatsapp_integrations`, `automations` e
+`automation_dispatches` usam `is_company_member(company_id)` em `ALL`.
+`companies` usa `is_superadmin() OR is_company_member(id)` em SELECT e
+`is_superadmin() OR is_company_admin(id)` em UPDATE. `company_users`,
+`message_templates` e `profiles` têm policies por comando.
+
+**O bloqueio "Nenhuma empresa vinculada" está resolvido:** existe 1 vínculo em
+`company_users` (empresa `consultorio`, role `owner`), 1 superadmin em `profiles`,
+2 usuários em `auth.users`. `companies.timezone` = `America/Sao_Paulo`.
+
+**WhatsApp:** `whatsapp_integrations` com `status=connected`, `provider=evolution`.
+
+**Pipeline de automação existe por inteiro:** 21 migrations aplicadas (última
+`20260902165559 switch_whatsapp_provider_to_evolution`), 15 funções no `public`
+(`enqueue_due_automation_dispatches`, `claim_automation_dispatches`,
+`mark_automation_dispatch_sent`, `mark_automation_dispatch_failed`,
+`requeue_failed_automation_dispatches`, `server_now`, `company_local_now`,
+`is_superadmin`, `is_company_member`, `is_company_admin`, …) e 3 jobs `pg_cron`
+ativos, todos a cada minuto: `consulta-pro-automation-enqueue`,
+`consulta-pro-automation-worker` (via `net.http_post`) e
+`consulta-pro-automation-retry`.
+
+`server_now()` **existe** — a chamada `rpc('server_now')` do frontend restaurado
+funciona.
+
+8 Edge Functions `ACTIVE`: `superadmin-create-company-user` (v5),
+`superadmin-update-company-user` (v3), `process-automation-dispatches` (v4),
+`process-automation-claim` (v3), `manage-evolution-session` (v13),
+`receive-evolution-webhook` (v4), `manage-waha-session` (v3), `enviar-mensagem` (v3).
+
+### Achados de segurança do backend
+
+1. **`company_local_now(uuid)` é executável pelo role `anon`** como
+   `SECURITY DEFINER`, via `/rest/v1/rpc/company_local_now`. É a única função
+   alcançável sem login. Revogar `EXECUTE` de `anon`.
+2. **6 funções `SECURITY DEFINER` executáveis por `authenticated`**:
+   `company_local_now`, `create_company_with_owner`, `is_company_admin`,
+   `is_company_member`, `is_superadmin`, `superadmin_create_company`. As de
+   predicado (`is_*`) são usadas pelas policies e precisam continuar; mas
+   `create_company_with_owner` e `superadmin_create_company` serem chamáveis por
+   qualquer usuário autenticado merece revisão — a proteção depende inteiramente
+   da checagem interna de cada função.
+3. **Proteção contra senha vazada desabilitada** no Supabase Auth (HaveIBeenPwned).
+4. **`receive-evolution-webhook` está com `verify_jwt: false`.** Correto para um
+   webhook, mas exige validação de assinatura ou token interno no corpo da função.
+   Não auditei o código dela.
+5. **A migration `20260830015114 automation_scheduler_secure_http_stage8` contém um
+   JWT literal** (`vault.create_secret('eyJ...','consulta_pro_legacy_anon_key')`).
+   Ao versionar `supabase/`, essa migration **não pode ir verbatim** para o repo,
+   que é público: substituir o literal por placeholder e setar o valor fora do git.
+   O vault tem exatamente 2 secrets: `consulta_pro_project_url` e
+   `consulta_pro_legacy_anon_key`.
+
+`EVOLUTION_API_URL` e `EVOLUTION_API_KEY` ficam no store de secrets de Edge
+Functions, que não é legível por MCP — não foram verificadas. O
+`status=connected` sugere que estão configuradas, mas isso não é prova.
+
+### O que continua aberto
+
+Versionar `supabase/` segue **pendente** e segue sendo o maior risco. O schema e
+as 8 Edge Functions são recuperáveis do projeto remoto (as 21 migrations têm o SQL
+completo em `supabase_migrations.schema_migrations`), mas ainda não estão no git.
 
 ## 5. Defeitos conhecidos no código restaurado
 
@@ -140,13 +226,16 @@ foi validada com dados reais desde então**. A documentação anterior declarava
 
 ## 8. Próximos passos, em ordem
 
-1. **Confirmar onde vive o projeto Supabase do Consulta Pro.** Sem isso, nada
-   abaixo pode ser testado.
-2. **Versionar `supabase/`** — migrations + as Edge Functions. Maior risco aberto.
-3. Validar o build no Render com o commit atual e abrir `/` e `/login`.
-4. Conferir o vínculo em `company_users` para o usuário de teste (bug conhecido
-   "Nenhuma empresa vinculada").
-5. Corrigir o falso-vazio do `TenantLayout` consumindo `loading` e expondo erro
+1. ~~Confirmar onde vive o projeto Supabase~~ — **feito**: `swrsjwmuqxrzgapqiacb`.
+2. ~~Conferir o vínculo em `company_users`~~ — **feito**: existe (`consultorio`/`owner`).
+3. **Versionar `supabase/`** — 21 migrations + 8 Edge Functions. Maior risco aberto.
+   Mascarar o JWT literal da migration `20260830015114` antes de commitar.
+4. **Revogar `EXECUTE` de `anon`** em `company_local_now`, e revisar se
+   `create_company_with_owner` e `superadmin_create_company` devem ser chamáveis
+   por qualquer `authenticated`.
+5. Testar o login real no Render e navegar as rotas tenant e `admin/*` com o
+   usuário owner existente.
+6. Corrigir o falso-vazio do `TenantLayout` consumindo `loading` e expondo erro
    com retry.
 6. Configurar `EVOLUTION_API_URL` e `EVOLUTION_API_KEY` e validar QR/conexão.
 7. Exercitar CRUD real: paciente → profissional → agendamento → template →

@@ -398,3 +398,45 @@ desde o commit mais antigo do repo), criado `.env.example`, e README e
 
 **Não validado:** nada foi exercitado com dados reais. O build compila e serve; não
 se afirma aqui que qualquer fluxo funciona ponta a ponta.
+
+
+### Backend localizado e auditado — 17/11/2026
+
+A primeira auditoria não encontrou o projeto porque o conector apontava para outra
+organização. Projeto correto: `swrsjwmuqxrzgapqiacb` (`consulta-pro`), org
+`uiuycznuzvecueilqzto`, `us-west-2`, Postgres 17.6.1.147, `ACTIVE_HEALTHY`.
+
+**O backend está em bom estado.** 11 tabelas, todas com RLS habilitado e policy,
+nenhuma permissiva sem condição. Isolamento por tenant verificado:
+`is_company_member(company_id)` nas operacionais; `companies` com
+`is_superadmin() OR is_company_member(id)`.
+
+21 migrations aplicadas, 15 funções no `public`, 3 jobs `pg_cron` ativos a cada
+minuto (enqueue, worker via `net.http_post`, retry) e 8 Edge Functions `ACTIVE`,
+incluindo `manage-evolution-session` (v13) e `receive-evolution-webhook` (v4).
+`server_now()` existe, então o `rpc('server_now')` do frontend restaurado funciona.
+
+**Dois bloqueios dos registros anteriores caíram:** o vínculo em `company_users`
+existe (empresa `consultorio`, role `owner`) e `whatsapp_integrations` está com
+`status=connected`, `provider=evolution`.
+
+Dados atuais: 1 empresa, 2 perfis (1 superadmin), 2 usuários em `auth.users`,
+1 paciente, 1 profissional, 1 agendamento, 8 templates. `automations`,
+`automation_dispatches` e `whatsapp_messages` estão vazias — o CRUD dessas partes
+nunca foi exercitado.
+
+**Achados de segurança:** `company_local_now` executável por `anon`;
+6 funções `SECURITY DEFINER` executáveis por `authenticated`, entre elas
+`create_company_with_owner` e `superadmin_create_company`; proteção contra senha
+vazada desabilitada; `receive-evolution-webhook` com `verify_jwt: false` (esperado
+para webhook, mas exige validação própria, não auditada).
+
+**Bloqueio para versionar `supabase/`:** a migration `20260830015114` contém um JWT
+literal em `vault.create_secret(...)`. O repositório é público, então essa migration
+precisa ir com placeholder. As outras 20 estão limpas (escaneadas por padrão de
+chave/token). O SQL completo das 21 está em `supabase_migrations.schema_migrations`,
+então a recuperação é possível.
+
+**Não verificado:** `EVOLUTION_API_URL` e `EVOLUTION_API_KEY` ficam no store de
+secrets de Edge Functions, que o MCP não lê. O `status=connected` sugere que estão
+setadas; não é prova. Nenhum fluxo foi exercitado ponta a ponta.
