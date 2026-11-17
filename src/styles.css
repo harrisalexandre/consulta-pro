@@ -353,25 +353,6 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
 .month-cell.muted .month-event{opacity:.55}
 
 /* mês — mini-calendário lateral */
-.agenda-month-layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:var(--s5)}
-.agenda-mini{border-right:1px solid var(--line);padding-right:var(--s4)}
-.mini-new{width:100%;height:38px;border:0;border-radius:var(--r1);background:var(--brand);color:#fff;
-  font:700 12px inherit;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;margin-bottom:var(--s5)}
-.mini-new:hover{filter:brightness(.94)}
-.mini-head{display:grid;grid-template-columns:28px 1fr 28px;align-items:center;gap:var(--s1);margin-bottom:var(--s3)}
-.mini-head b{text-align:center;font-size:11px;text-transform:capitalize}
-.mini-head .icon-btn{width:28px;height:28px}
-.mini-weekdays,.mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.mini-weekdays b{text-align:center;font-size:9px;color:#8a948e;padding-bottom:6px}
-.mini-grid button{width:100%;aspect-ratio:1;border:0;border-radius:50%;background:transparent;font:500 10px inherit;color:var(--ink-2);cursor:pointer}
-.mini-grid button:hover{background:var(--brand-softer)}
-.mini-grid button.muted{color:#b7beb9}
-.mini-grid button.selected{background:var(--brand);color:#fff;font-weight:800}
-.mini-grid button.has-events:not(.selected){font-weight:800;position:relative}
-.mini-grid button.has-events:not(.selected)::after{content:'';display:block;width:3px;height:3px;border-radius:50%;background:var(--brand);margin:-3px auto 0}
-.mini-summary{border-top:1px solid var(--line);margin-top:var(--s5);padding-top:var(--s3);display:grid;gap:var(--s1)}
-.mini-summary b{font-size:11px}
-.mini-summary span{font-size:10px;color:var(--muted)}
 
 /* lista */
 .agenda-list{display:grid;gap:var(--s2)}
@@ -422,10 +403,9 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   .content{padding:var(--s5)}
   .grid{grid-template-columns:1fr}
   .metrics{grid-template-columns:1fr 1fr}
-  .agenda-month-layout{grid-template-columns:1fr}
-  .agenda-mini{border-right:0;border-bottom:1px solid var(--line);padding:0 0 var(--s3)}
-  .mini-new{max-width:240px}
-  .mini-grid{max-width:280px}
+  
+  
+  
   .agenda-controls{display:block}
   .agenda-controls-right{margin-top:var(--s3);justify-content:flex-end}
   .agenda-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
@@ -485,3 +465,34 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   .month-events>small{font-size:8px}
   .month-grid{grid-auto-rows:minmax(64px,1fr)}
 }
+
+/* ==========================================================================
+   Visao Dia: grade + coluna de pendencias, como no design aprovado.
+   O mes passou a ocupar a largura toda; o mini-calendario saiu, porque o
+   calendario grande ja estava ali do lado.
+   ========================================================================== */
+.agenda-month-wrap{min-width:0}
+.agenda-day-layout{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--s5)}
+.agenda-day-layout>.calendar-day{flex:999 1 460px;min-width:0}
+.agenda-actions{flex:1 1 290px;min-width:270px}
+.agenda-actions .panel{padding:var(--s4)}
+.actions-head{display:flex;align-items:center;gap:var(--s2)}
+.actions-head h2{margin:0;font-size:14px}
+.actions-count{font-size:10px;font-weight:800;background:var(--brand);color:#fff;border-radius:var(--rp);padding:3px var(--s2)}
+.actions-sub{margin:var(--s1) 0 var(--s3);font-size:11px;color:var(--muted)}
+.actions-clear{margin:0;font-size:12px;color:var(--muted)}
+.action-box{border:1px solid var(--line);border-radius:var(--r2);padding:var(--s3);margin-bottom:var(--s3)}
+.action-box:last-child{margin-bottom:0}
+.action-box.warn{background:#fffdf5;border-color:#ecdfc0}
+.action-box.danger-box{background:var(--danger-soft);border-color:#e6cccc}
+.action-top{display:flex;flex-wrap:wrap;align-items:baseline;gap:var(--s2);margin-bottom:var(--s2)}
+.action-top strong{font-size:12px}
+.action-top span{font-size:11px;color:var(--muted)}
+.action-note{margin:0 0 var(--s2);font-size:11px;color:var(--ink-2);line-height:1.45}
+.action-item{display:flex;align-items:center;gap:var(--s2);width:100%;border:0;background:transparent;
+  padding:var(--s2) 0;font:inherit;text-align:left;cursor:pointer;color:var(--ink);border-top:1px solid rgba(0,0,0,.05)}
+.action-item:first-of-type{border-top:0}
+.action-item:hover{color:var(--brand)}
+.action-item b{font-size:12px;flex:0 0 46px}
+.action-item span{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:850px){.agenda-actions{flex:1 1 100%}}
