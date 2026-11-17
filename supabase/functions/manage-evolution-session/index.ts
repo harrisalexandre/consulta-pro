@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
         existingState = String(existing?.instance?.state || existing?.state || "").toLowerCase()
       } catch {}
 
-      if (existingState === "close" || existingState === "closed") {
+      if (existingState && existingState !== "open") {
         try { await evolution("/instance/delete/" + encodeURIComponent(instance), { method: "DELETE" }) } catch {}
       }
 

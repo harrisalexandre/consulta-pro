@@ -463,7 +463,7 @@ function WhatsAppPage(){
         {item?.status==='connecting'&&<div className="empty-box"><Wifi size={30}/><h2>Aguardando conexão</h2><p>Escaneie o QR Code no WhatsApp.</p>{qr&&<img src={qr} alt="QR Code para conectar o WhatsApp" style={{width:260,height:260,objectFit:'contain',margin:'16px auto'}}/>}</div>}
         {item?.status!=='connected'&&item?.status!=='connecting'&&<div className="empty-box"><MessageCircle size={30}/><h2>WhatsApp desconectado</h2><p>Conecte uma sessão para habilitar os disparos automáticos.</p></div>}
         {item?.status==='error'&&<div className="form-error">Falha na conexão. Tente conectar novamente.</div>}
-        <div><button className="hero-btn" disabled={busy} onClick={()=>session(item?.status==='connecting'?'qr':'start')}>{busy?'Processando...':item?.status==='connected'?'Atualizar status':item?.status==='connecting'?'Atualizar QR':'Conectar WhatsApp'} <Wifi size={16}/></button>{item?.status==='connected'&&<button className="back-link" disabled={busy} onClick={()=>session('start')}>Reconectar</button>}</div>
+        <div><button className="hero-btn" disabled={busy} onClick={()=>session('start')}>{busy?'Processando...':item?.status==='connected'?'Atualizar status':item?.status==='connecting'?'Gerar novo QR':'Conectar WhatsApp'} <Wifi size={16}/></button>{item?.status==='connected'&&<button className="back-link" disabled={busy} onClick={()=>session('start')}>Reconectar</button>}</div>
       </>}
     </section>
 
