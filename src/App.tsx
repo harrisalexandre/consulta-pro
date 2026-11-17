@@ -568,7 +568,6 @@ export default function App(){
 
       <Route element={<RoleGate admin={false}/>}>
         <Route element={<TenantLayout/>}>
-        <Route index element={<Navigate to="/dashboard" replace/>}/>
         <Route path="dashboard" element={<TenantDashboard/>}/>
         <Route path="agenda" element={<AgendaPage/>}/>
         <Route path="pacientes" element={<PatientsPage/>}/>
