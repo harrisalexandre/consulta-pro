@@ -440,3 +440,76 @@ então a recuperação é possível.
 **Não verificado:** `EVOLUTION_API_URL` e `EVOLUTION_API_KEY` ficam no store de
 secrets de Edge Functions, que o MCP não lê. O `status=connected` sugere que estão
 setadas; não é prova. Nenhum fluxo foi exercitado ponta a ponta.
+
+
+### Revisão UX/UI — consolidação da folha de estilo — 17/11/2026
+
+A folha era **acretada**: cada etapa da Agenda anexava um bloco novo sem
+consolidar o anterior. Resultado medido em `4b2bf79`/`ab9cb3d`: 210 linhas com
+`.agenda-toolbar`, `.agenda-toolbar h2`, `.modal`, `.modal .head`,
+`.modal .head p`, `.agenda-filters`, `.month-grid`, `.month-cell`,
+`.calendar-slot` e `.calendar-day` definidos duas vezes com valores
+conflitantes; 11 cinzas de borda diferentes (`#ddd`, `#eee`, `#dfe5e0`,
+`#e1e6e2`, `#e4e8e5`, `#e8ece9`, `#dce3de`, `#d9e0db`, `#e5ebe7`, `#e6ebe7`,
+`#e7ebe7`); 8 breakpoints (1000, 850, 800, 700, 650, 520, 500, 420); alturas de
+controle em 38, 40, 41, 42 e 44px; e zero variáveis CSS.
+
+**Defeitos corrigidos, cada um verificado por leitura do código:**
+
+1. **`.icon-btn` não tinha regra base** — só `{border:0;background:none;cursor:pointer}`.
+   Ganhava aparência apenas dentro de `.password-wrap` e `.mini-head`. Os 12
+   botões de ícone do app (Profissionais, Pacientes, Agenda) renderizavam como
+   `<button>` nativo sem tamanho, padding ou hover. Agora tem base com
+   `--ctl`, raio, hover e variante `.danger`.
+2. **`.back-link` não tinha regra base nenhuma** — apenas `.row .back-link` e
+   `.calendar-slot .back-link`. Fora desses dois contextos era botão cru.
+   Agora é um botão secundário completo.
+3. **`.hero-btn` carregava `margin-top:12px`** herdado do CTA da landing,
+   anulado só dentro de `.modal`. Todo botão de toolbar e de cabeçalho de
+   página vinha com 12px de sobra no topo. Removido da base.
+4. **Dois `<button onClick={logout}>` sem `className`** — botão nativo na
+   sidebar. Agora `icon-btn` com `title="Sair"`.
+5. **`.company-select` não existia no CSS** e era usado no markup: o `<select>`
+   de troca de empresa era um select nativo cru. Criado.
+6. **`.agenda-controls-left .agenda-stats{display:none}`** escondia os
+   indicadores operacionais. Como `.agenda-stats` aparece exatamente uma vez no
+   markup, e é dentro de `.agenda-controls-left`, a feature da etapa 10 estava
+   **100% invisível**. Agora aparece em versão compacta, honrando a intenção de
+   "controles compactos" sem matar o indicador.
+7. **`.agenda-toolbar` somava espaçamentos** — `margin-bottom:18px` da primeira
+   definição + `padding:4px 0 18px` e `border-bottom` da segunda, porque a
+   segunda não resetava a margem. Uma definição só agora.
+8. **`.appointment-card` tinha `border-left:3px solid #222`** (preto) enquanto
+   `.calendar-event` usava verde para o mesmo conceito. Unificado no token, e o
+   card passou a receber `status-${a.status}` no markup — as regras
+   `.appointment-card.status-*` existiam mas estavam mortas por falta da classe.
+9. **`.form-success` e `.placeholder`** eram usados sem regra. Criados.
+10. **Jargão interno vazando para a UI**: "Tenant ativo", "Tenant protegido por
+    RLS" e "Cadastre um novo tenant do Consulta Pro." viravam texto na tela para
+    o usuário final. Trocados por "Empresa ativa", "Sessão ativa" e "Cadastre
+    uma nova empresa no Consulta Pro.".
+11. **`.head` usava `align-items:end`** com `.head p` sem reset de margem,
+    desalinhando título e ação. Agora `flex-start` com margem controlada.
+12. **`.profile` era `position:absolute;bottom:25px`** dentro da aside fixa;
+    agora a aside é flex e o bloco usa `margin-top:auto`, sem sobreposição
+    quando o menu cresce.
+
+**Também:** camada `:root` com tokens (cor, escala de espaçamento 4–32,
+raios, sombras, altura de controle única, anel de foco); breakpoints reduzidos
+de 8 para 4 (1000/850/650/420); `:focus-visible` global para acessibilidade de
+teclado, que não existia.
+
+**Colisão evitada:** `Landing.tsx` injeta CSS próprio inline que já define
+`.btn` e `.btn-ghost`. Os aliases com esses nomes foram removidos da folha para
+não disputar ordem de cascata com a landing.
+
+Folha: 210 → 462 linhas (23.588 → 26.2 kB no bundle, +2,6 kB), **sem perder
+nenhum dos 96 seletores originais** (conferido por diff de conjuntos) e com 3
+novos que faltavam.
+
+Validação: `npx tsc -b --force` com 0 erros; `npm run build` ok.
+
+**Não validado visualmente.** Não há navegador nesta sessão que alcance
+`localhost` nem sessão autenticada no deploy, então as correções acima foram
+derivadas por leitura do CSS e do markup, não por inspeção da tela renderizada.
+As telas de empresa precisam de login real para conferência visual.
