@@ -329,7 +329,7 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
 
 /* mês */
 .agenda-month{overflow:auto}
-.month-weekdays,.month-grid{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));min-width:840px}
+.month-weekdays,.month-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
 .month-weekdays b{padding:var(--s3);font-size:11px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line)}
 .month-grid{grid-auto-rows:minmax(118px,1fr)}
 .month-cell{border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);background:var(--surface);
@@ -413,8 +413,11 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   .hero{grid-template-columns:1fr;gap:35px;padding-top:55px}
   .hero h1{font-size:40px}
   .features{grid-template-columns:1fr}
-  .layout aside{display:none}
+  .layout aside{position:fixed;z-index:60;width:260px;transform:translateX(-100%);transition:transform .18s ease;box-shadow:none}
+  .layout.menu-open aside{transform:translateX(0);box-shadow:0 0 40px rgba(20,28,24,.18)}
   .layout main{margin:0}
+  .menu-btn{display:inline-grid}
+  .layout.menu-open .menu-backdrop{display:block}
   .layout header{padding:0 var(--s5)}
   .content{padding:var(--s5)}
   .grid{grid-template-columns:1fr}
@@ -460,4 +463,25 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   .agenda-filters .agenda-search,.agenda-filters .clear-filters{grid-column:auto}
   .agenda-nav-btn,.agenda-today{padding-inline:var(--s2)}
   .row{flex-wrap:wrap}
+}
+
+/* ==========================================================================
+   Menu em gaveta e estado do WhatsApp na agenda
+   Antes a sidebar simplesmente sumia abaixo de 850px, sem nada no lugar.
+   ========================================================================== */
+.menu-btn{display:none;margin-right:var(--s2);flex:0 0 var(--ctl)}
+.menu-backdrop{display:none;position:fixed;inset:0;z-index:55;border:0;padding:0;background:rgba(20,28,24,.35);cursor:pointer}
+.wa-pill{display:inline-flex;align-items:center;gap:var(--s2);height:var(--ctl-sm);padding:0 var(--s3);
+  border-radius:var(--rp);font:700 11px inherit;white-space:nowrap}
+.wa-pill.ok{background:var(--brand-soft);color:var(--brand-ink)}
+.wa-pill.off{background:var(--danger-soft);color:var(--danger-ink)}
+.wa-pill svg{flex:0 0 14px}
+
+/* o mes nao rola mais na horizontal: em tela estreita some o texto do evento,
+   ficam o numero do dia e a contagem */
+@media(max-width:700px){
+  .month-cell{padding:var(--s1);gap:2px}
+  .month-event{display:none}
+  .month-events>small{font-size:8px}
+  .month-grid{grid-auto-rows:minmax(64px,1fr)}
 }
