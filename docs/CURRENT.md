@@ -513,3 +513,45 @@ Validação: `npx tsc -b --force` com 0 erros; `npm run build` ok.
 `localhost` nem sessão autenticada no deploy, então as correções acima foram
 derivadas por leitura do CSS e do markup, não por inspeção da tela renderizada.
 As telas de empresa precisam de login real para conferência visual.
+
+
+### Fechamento do dia — 17/11/2026
+
+Oito commits em `main`, cada um com `tsc -b --force` e `npm run build` verdes.
+
+**Frontend recuperado e alinhado ao design**
+- `ab9cb3d` restaura `src/App.tsx` de `861a879`, corrigindo os 6 erros de
+  sintaxe que levaram quatro commits "fix: restore" a apagar ~540 linhas.
+- `3021511` consolida a folha de estilo em tokens: 10 seletores duplicados,
+  11 cinzas de borda e 8 breakpoints viraram um sistema só.
+- `0fab076` aplica o redesenho da agenda: abre em Dia, mês com
+  `repeat(7,minmax(0,1fr))`, sidebar em gaveta, estado do WhatsApp visível.
+- `1a4a6ea` escopa os seletores do shell para filho direto. `.layout aside`
+  alcançava o mini-calendário, que também era um `<aside>`, e quebrava a
+  visão de Mês mesmo em janela de 1474px.
+- `feae462` fecha a divergência com o design aprovado: sai o mini-calendário,
+  entra a coluna "Precisa de ação", o evento da grade ganha status e a cor do
+  profissional.
+
+**Caminho template → WhatsApp consertado**
+- `87ae376` resolve três defeitos somados que impediam a mensagem de sair como
+  configurada: a tela gravava o *nome* do template em vez do corpo; o worker
+  não substituía variável nenhuma; e `message_templates` não era lido no
+  disparo. Também corrige `kind:"text"`, inválido no enum `message_kind`, que
+  fazia todo log de mensagem falhar calado.
+- Migration `link_automations_to_message_templates` aplicada.
+- Edge Function `process-automation-dispatches` na versão 5.
+- Regra nova: mensagem com variável não resolvida **não é enviada**.
+
+**Cadastros**
+- `d79ba45` completa os formulários. Pacientes gravava 4 de 16 colunas,
+  profissionais 4 de 8. Agora cobrem tudo que existe no banco.
+
+**Decisões registradas**
+- Nome mantido como "Consulta Pro" por ora. O nome já tem dono no mercado,
+  assim como "Por Perto" e "Pro Saúde"; Cadência, Pontual e Zelo também foram
+  descartados por colisão. Validação de domínio ficou para depois.
+- O botão "Enviar lembrete" não foi ligado: dispara mensagem real a paciente.
+
+**Não validado:** nenhum disparo real aconteceu desde a correção do worker —
+`automations` está vazia. O fluxo ponta a ponta continua por exercitar.

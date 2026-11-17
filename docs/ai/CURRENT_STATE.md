@@ -1,6 +1,6 @@
 # Consulta Pro — Estado atual
 
-**Atualizado em:** 17/11/2026
+**Atualizado em:** 17/11/2026 (fim do dia)
 **Projeto Supabase:** `swrsjwmuqxrzgapqiacb` (`consulta-pro`)
 **Branch canônica:** `main`
 **Produção:** https://consulta-pro.onrender.com/
@@ -226,24 +226,47 @@ foi validada com dados reais desde então**. A documentação anterior declarava
 
 ## 8. Próximos passos, em ordem
 
-1. ~~Confirmar onde vive o projeto Supabase~~ — **feito**: `swrsjwmuqxrzgapqiacb`.
-2. ~~Conferir o vínculo em `company_users`~~ — **feito**: existe (`consultorio`/`owner`).
-3. **Versionar `supabase/`** — 21 migrations + 8 Edge Functions. Maior risco aberto.
-   Mascarar o JWT literal da migration `20260830015114` antes de commitar.
-4. **Revogar `EXECUTE` de `anon`** em `company_local_now`, e revisar se
-   `create_company_with_owner` e `superadmin_create_company` devem ser chamáveis
-   por qualquer `authenticated`.
-5. Testar o login real no Render e navegar as rotas tenant e `admin/*` com o
-   usuário owner existente.
-6. Corrigir o falso-vazio do `TenantLayout` consumindo `loading` e expondo erro
-   com retry.
-6. Configurar `EVOLUTION_API_URL` e `EVOLUTION_API_KEY` e validar QR/conexão.
-7. Exercitar CRUD real: paciente → profissional → agendamento → template →
-   automação → dispatch → histórico.
-8. Rede de segurança mínima: CI com `npm ci && npm run build`, ESLint com
-   `no-unused-vars`, e um smoke test de rota. Os itens 1-5 da seção 5 são
-   exatamente o tipo de regressão que isso teria pego.
-9. Auditoria de RLS e isolamento entre tenants, com o projeto correto em mãos.
+**Fechados hoje** (commits em `main`, build verde em cada um):
+`ab9cb3d` restauração do App.tsx · `e024eff` backend localizado ·
+`3021511` folha consolidada em tokens · `0fab076` redesenho da agenda ·
+`1a4a6ea` escopo dos seletores do shell · `feae462` agenda igual ao design ·
+`87ae376` variáveis de template no worker · `d79ba45` formulários completos.
+
+**Em aberto, por ordem:**
+
+1. **Versionar `supabase/`** — 21 migrations + 8 Edge Functions. Maior risco
+   aberto. Mascarar o JWT literal da migration `20260830015114` antes de
+   commitar: o repositório é público.
+2. **Revogar `EXECUTE` de `anon`** em `company_local_now`, e revisar se
+   `create_company_with_owner` e `superadmin_create_company` devem ser
+   chamáveis por qualquer `authenticated`.
+3. **Exercitar o fluxo de disparo de ponta a ponta.** O worker v5 resolve as
+   variáveis, mas `automations` está vazia: nada foi disparado de verdade
+   desde a correção. Criar automação → agendamento → esperar o cron → conferir
+   `automation_dispatches` e `whatsapp_messages`.
+4. **Confirmação do paciente fecha o ciclo.** Ligar a resposta `inbound` ao
+   agendamento e mudar o status sozinho. É a maior lacuna de produto: hoje o
+   lembrete é mão única e alguém lê o WhatsApp e muda na mão.
+5. **Consentimento e descadastro** em `patients`. Disparo automático no Brasil
+   exige saída. Migration + tratamento de palavra-chave no webhook.
+6. **Horário de atendimento** por profissional. Sem ele a agenda não mostra
+   vaga livre nem bloqueia marcação fora do expediente.
+7. **Cobrança.** Nenhuma tabela guarda valor, pagamento ou convênio, então a
+   cobrança automática que o produto promete não tem de onde sair.
+8. Corrigir o falso-vazio do `TenantLayout` consumindo `loading` e expondo
+   erro com retry.
+9. Gatilhos de automação além de `advance_minutes`: falta, retorno,
+   aniversário, paciente inativo, pós-consulta.
+10. Papéis `attendant` e `professional` do enum `company_role`, hoje ignorados:
+    o médico enxerga a clínica inteira.
+11. Ligar o botão "Enviar lembrete" da coluna Precisa de ação. Dispara
+    mensagem real para paciente, então precisa de confirmação antes de enviar.
+12. Rede de segurança mínima: CI com `npm ci && npm run build`, ESLint com
+    `no-unused-vars` e um smoke test de rota. As regressões desta semana são
+    exatamente o que isso teria pego.
+13. Nome do produto. "Consulta Pro" já tem dono no mercado, assim como
+    "Por Perto" e "Pro Saúde". Mantido por ora; validar domínio e INPI depois.
+    Trocar mexe em repo, Render, `package.json`, landing e instância Evolution.
 
 ## 9. Regra que falhou e precisa valer
 
