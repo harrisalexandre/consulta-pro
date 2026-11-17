@@ -67,8 +67,8 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
 .app-logo img{width:42px;height:42px;border-radius:var(--r3);display:block;object-fit:cover;flex:0 0 42px}
 .auth-card .app-logo{justify-content:center;font-size:22px}
 .auth-card .app-logo img{width:58px;height:58px;border-radius:var(--r4);flex-basis:58px}
-.layout aside>.app-logo{margin-bottom:var(--s1)}
-.layout header strong{color:var(--brand-ink)}
+.layout>aside>.app-logo{margin-bottom:var(--s1)}
+.layout>main>header strong{color:var(--brand-ink)}
 
 /* ==========================================================================
    BOTÕES — sistema único.
@@ -156,9 +156,9 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
 
 /* ---------- shell do app ---------- */
 .layout{min-height:100vh}
-.layout aside{position:fixed;width:240px;inset:0 auto 0 0;padding:var(--s6);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column}
-.layout main{margin-left:240px}
-.layout header{height:64px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 var(--s7);display:flex;justify-content:space-between;align-items:center;font-size:13px}
+.layout>aside{position:fixed;width:240px;inset:0 auto 0 0;padding:var(--s6);background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.layout>main{margin-left:240px}
+.layout>main>header{height:64px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 var(--s7);display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .content{padding:var(--s7);max-width:1250px}
 .company{font-size:11px;color:var(--muted);margin:var(--s5) 0 var(--s3)}
 .company strong{display:block;font-size:13px;color:var(--ink)}
@@ -168,12 +168,12 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   color:var(--ink);font:500 12px inherit;cursor:pointer}
 .company-select:hover{border-color:var(--brand)}
 .company-select:focus{border-color:var(--brand);box-shadow:var(--focus);outline:0}
-.layout nav{display:grid;gap:var(--s1);align-content:start}
-.layout nav a{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);color:#69736d;text-decoration:none;border-radius:var(--r1);font-size:13px}
-.layout nav a:hover{background:var(--surface-3);color:var(--ink-2)}
-.layout nav a svg{flex:0 0 18px;display:block}
+.layout>aside>nav{display:grid;gap:var(--s1);align-content:start}
+.layout>aside>nav a{display:flex;align-items:center;gap:var(--s3);padding:var(--s3);color:#69736d;text-decoration:none;border-radius:var(--r1);font-size:13px}
+.layout>aside>nav a:hover{background:var(--surface-3);color:var(--ink-2)}
+.layout>aside>nav a svg{flex:0 0 18px;display:block}
 .sidebar-nav span{line-height:1}
-.layout nav a.active{background:var(--brand-soft);color:var(--brand);font-weight:700}
+.layout>aside>nav a.active{background:var(--brand-soft);color:var(--brand);font-weight:700}
 .profile{margin-top:auto;padding-top:var(--s5);border-top:1px solid var(--line);display:flex;gap:var(--s3);align-items:center;font-size:12px}
 .profile>b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#dce8e2;color:var(--brand);flex:0 0 30px}
 .profile span{display:grid;flex:1;min-width:0}
@@ -413,12 +413,12 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
   .hero{grid-template-columns:1fr;gap:35px;padding-top:55px}
   .hero h1{font-size:40px}
   .features{grid-template-columns:1fr}
-  .layout aside{position:fixed;z-index:60;width:260px;transform:translateX(-100%);transition:transform .18s ease;box-shadow:none}
-  .layout.menu-open aside{transform:translateX(0);box-shadow:0 0 40px rgba(20,28,24,.18)}
-  .layout main{margin:0}
+  .layout>aside{position:fixed;z-index:60;width:260px;transform:translateX(-100%);transition:transform .18s ease;box-shadow:none}
+  .layout.menu-open>aside{transform:translateX(0);box-shadow:0 0 40px rgba(20,28,24,.18)}
+  .layout>main{margin:0}
   .menu-btn{display:inline-grid}
   .layout.menu-open .menu-backdrop{display:block}
-  .layout header{padding:0 var(--s5)}
+  .layout>main>header{padding:0 var(--s5)}
   .content{padding:var(--s5)}
   .grid{grid-template-columns:1fr}
   .metrics{grid-template-columns:1fr 1fr}
