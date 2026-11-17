@@ -1,0 +1,3 @@
+create or replace function public.superadmin_create_company(company_name text, legal_name text default null, cnpj text default null, phone text default null, email text default null) returns uuid language plpgsql security definer set search_path=public as $$ declare cid uuid; uid uuid:=auth.uid(); begin if not public.is_superadmin() then raise exception 'not authorized'; end if; insert into public.companies(name,legal_name,cnpj,phone,email,created_by) values(company_name,legal_name,cnpj,phone,email,uid) returning id into cid; return cid; end; $$;
+revoke all on function public.superadmin_create_company(text,text,text,text,text) from public;
+grant execute on function public.superadmin_create_company(text,text,text,text,text) to authenticated;

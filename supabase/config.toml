@@ -1,0 +1,27 @@
+project_id = "swrsjwmuqxrzgapqiacb"
+
+[functions.superadmin-create-company-user]
+verify_jwt = true
+
+[functions.superadmin-update-company-user]
+verify_jwt = true
+
+[functions.process-automation-dispatches]
+verify_jwt = true
+
+[functions.process-automation-claim]
+verify_jwt = true
+
+[functions.manage-evolution-session]
+verify_jwt = true
+
+# Webhook chamado pela Evolution API: nao recebe JWT de usuario.
+# A propria funcao valida o header apikey contra EVOLUTION_API_KEY.
+[functions.receive-evolution-webhook]
+verify_jwt = false
+
+[functions.manage-waha-session]
+verify_jwt = true
+
+[functions.enviar-mensagem]
+verify_jwt = true
