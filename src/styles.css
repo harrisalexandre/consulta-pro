@@ -496,3 +496,8 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;background:va
 .action-item b{font-size:12px;flex:0 0 46px}
 .action-item span{font-size:12px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(max-width:850px){.agenda-actions{flex:1 1 100%}}
+
+/* campo de cor do profissional */
+.color-field{display:flex;align-items:center;gap:var(--s3)}
+.color-field input[type="color"]{width:52px;height:40px;padding:2px;border:1px solid var(--line);border-radius:var(--r1);background:var(--surface);cursor:pointer}
+.color-field small{font-size:11px;color:var(--muted);line-height:1.35}
