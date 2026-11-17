@@ -507,10 +507,15 @@ function AutomationsPage(){
   </TenantPage>
 }
 function TenantLayout(){
-  const{activeCompany,companies,setActiveCompany}=useTenant();const navigate=useNavigate()
+  const{activeCompany,companies,setActiveCompany,loading,error,refresh}=useTenant();const navigate=useNavigate()
   const[menu,setMenu]=useState(false)
   async function logout(){await supabase?.auth.signOut();navigate('/login')}
-  if(!activeCompany)return <div className="content"><section className="panel"><Building2 size={36}/><h2>Nenhuma empresa vinculada</h2><p>Seu usuário ainda não possui um consultório associado.</p></section></div>
+  // carregando, erro e vazio real sao tres telas diferentes. Antes os tres
+  // colapsavam em "Nenhuma empresa vinculada", entao queda de rede ou RLS
+  // negando apareciam como se o usuario nao tivesse consultorio.
+  if(loading)return <div className="content"><section className="panel empty-box"><p>Carregando consultório...</p></section></div>
+  if(error)return <div className="content"><section className="panel empty-box"><CircleAlert size={34}/><h2>Não foi possível carregar o consultório</h2><p>{error}</p><button className="hero-btn" onClick={()=>{void refresh()}}>Tentar de novo</button></section></div>
+  if(!activeCompany)return <div className="content"><section className="panel empty-box"><Building2 size={36}/><h2>Nenhuma empresa vinculada</h2><p>Seu usuário ainda não possui um consultório associado. Peça para o administrador vincular seu acesso.</p></section></div>
   return <div className={menu?'layout menu-open':'layout'}><aside><Logo/><div className="company"><strong>{activeCompany.name}</strong><small>Empresa ativa</small></div>{companies.length>1&&<select className="company-select" value={activeCompany.id} onChange={e=>{const c=companies.find(x=>x.id===e.target.value);if(c)setActiveCompany(c)}}>{companies.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select>}<nav className="sidebar-nav">{tenantNav.map(([path,label,Icon])=><NavLink key={path} to={path} onClick={()=>setMenu(false)}><Icon size={18}/><span>{label}</span></NavLink>)}</nav><div className="profile"><b>U</b><span>Conta<small>Sessão ativa</small></span><button className="icon-btn" title="Sair" onClick={logout}><LogOut size={15}/></button></div></aside><button type="button" className="menu-backdrop" aria-label="Fechar menu" onClick={()=>setMenu(false)}/><main><header><button type="button" className="icon-btn menu-btn" aria-label="Abrir menu" onClick={()=>setMenu(v=>!v)}><Menu size={18}/></button><strong>{activeCompany.name}</strong><span>Operação</span></header><Outlet/></main></div>
 }
 

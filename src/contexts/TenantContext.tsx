@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 
 export type Company={id:string;name:string;legal_name?:string|null;cnpj?:string|null;phone?:string|null;email?:string|null;timezone?:string|null}
-type TenantContextValue={companies:Company[];activeCompany:Company|null;loading:boolean;setActiveCompany:(c:Company)=>void;refresh:()=>Promise<void>}
+type TenantContextValue={companies:Company[];activeCompany:Company|null;loading:boolean;error:string|null;setActiveCompany:(c:Company)=>void;refresh:()=>Promise<void>}
 
 const TenantContext=createContext<TenantContextValue|null>(null)
 const TENANT_TIMEOUT_MS=8000
@@ -12,13 +12,14 @@ export function TenantProvider({children}:{children:ReactNode}){
   const[companies,setCompanies]=useState<Company[]>([])
   const[activeCompany,setActive]=useState<Company|null>(null)
   const[loading,setLoading]=useState(true)
+  const[error,setError]=useState<string|null>(null)
   const requestRef=useRef(0)
 
   const refresh=async()=>{
     const requestId=++requestRef.current
     const finish=()=>{if(requestId===requestRef.current)setLoading(false)}
-    if(!supabase){setCompanies([]);setActive(null);finish();return}
-    setLoading(true)
+    if(!supabase){setCompanies([]);setActive(null);setError('Supabase não configurado.');finish();return}
+    setLoading(true);setError(null)
     const timeout=new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Tempo esgotado ao carregar o tenant.')),TENANT_TIMEOUT_MS))
     try{
       const result=await Promise.race([supabase.auth.getUser(),timeout])
@@ -48,7 +49,7 @@ export function TenantProvider({children}:{children:ReactNode}){
       else localStorage.removeItem('consulta-pro-company')
     }catch(error){
       console.error('Erro ao carregar tenant:',error)
-      if(requestId===requestRef.current){setCompanies([]);setActive(null)}
+      if(requestId===requestRef.current){setCompanies([]);setActive(null);setError(error instanceof Error?error.message:'Não foi possível carregar o consultório.')}
     }finally{finish()}
   }
 
@@ -65,7 +66,7 @@ export function TenantProvider({children}:{children:ReactNode}){
     localStorage.setItem('consulta-pro-company',c.id)
   }
 
-  return <TenantContext.Provider value={{companies,activeCompany,loading,setActiveCompany,refresh}}>{children ?? <Outlet/>}</TenantContext.Provider>
+  return <TenantContext.Provider value={{companies,activeCompany,loading,error,setActiveCompany,refresh}}>{children ?? <Outlet/>}</TenantContext.Provider>
 }
 
 export function useTenant(){const v=useContext(TenantContext);if(!v)throw new Error('useTenant must be used inside TenantProvider');return v}
