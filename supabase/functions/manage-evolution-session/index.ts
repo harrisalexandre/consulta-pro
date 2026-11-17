@@ -116,11 +116,13 @@ async function configureWebhook(instance: string) {
   await evolution(`/webhook/set/${encodeURIComponent(instance)}`, {
     method: "POST",
     body: JSON.stringify({
-      enabled: true,
-      url,
-      webhookByEvents: false,
-      webhookBase64: false,
-      events: ["QRCODE_UPDATED", "MESSAGES_UPSERT", "CONNECTION_UPDATE", "SEND_MESSAGE"],
+      webhook: {
+        enabled: true,
+        url,
+        byEvents: false,
+        base64: false,
+        events: ["QRCODE_UPDATED", "MESSAGES_UPSERT", "CONNECTION_UPDATE", "SEND_MESSAGE"],
+      },
     }),
   })
 }
