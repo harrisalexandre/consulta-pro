@@ -198,12 +198,15 @@ Deno.serve(async (req) => {
     }
 
     let qr: string | null = null
-    if (action === "start" || action === "qr") {
+    // Só pede QR quando a instância está aguardando leitura. Depois do scan a
+    // conexão reinicia (close) para concluir o pareamento; chamar connect
+    // nesse momento derruba o pareamento e o celular recusa.
+    if (action === "start" || (action === "qr" && rawState === "connecting")) {
       const connected = await evolution(`/instance/connect/${encodeURIComponent(instance)}`)
       qr = qrFrom(connected)
     }
 
-    const status = qr || rawState.includes("connect") || rawState.includes("qr")
+    const status = qr || rawState.includes("connect") || rawState.includes("qr") || action === "qr"
       ? "connecting"
       : rawState.includes("close") || rawState.includes("disconnect")
         ? "disconnected"
