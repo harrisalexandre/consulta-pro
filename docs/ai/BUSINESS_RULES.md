@@ -57,3 +57,18 @@
 2. Loading, erro e vazio real são estados diferentes.
 3. Ações destrutivas ou irreversíveis devem pedir confirmação.
 4. Rotas internas devem possuir navegação coerente e fallback.
+
+## Mensagens automáticas (17/11/2026)
+1. Toda mensagem automática passa pela fila visível; pode ser segurada ("Não enviar esta") até sair, e desfeita.
+2. Janela de envio por empresa (padrão 08:00–20:00, seg–sex). Fora dela: adiar (padrão) ou não enviar.
+3. Lembrete nunca sai depois do início da consulta; se cair fora da janela, sai no último horário permitido antes (ex.: dia anterior).
+4. No máximo 1 mensagem automática por paciente a cada N horas (padrão 2h). Por paciente, não por número.
+5. Paciente que responder SAIR/PARAR não recebe mais automáticas (por paciente; número compartilhado marca o paciente da última mensagem enviada).
+6. Paciente inativo não recebe automáticas.
+7. Mensagem com campo não preenchível não sai: vai para "Mensagens que não saíram" com motivo em português e ação de correção.
+8. Reenviar revalida todas as regras no servidor.
+9. Chamar para retorno é manual: o usuário escolhe quem recebe na lista de elegíveis.
+10. Agradecer, faltou e aniversário só valem para o que acontecer depois de a automação ser ligada (sem disparo em massa do histórico).
+11. Pausa geral por empresa segura todos os envios automáticos.
+12. Aviso "algo parou" por WhatsApp para número escolhido pela empresa, no máximo 1 por hora.
+13. Papel "recepção" decidido, ainda não implementado.
