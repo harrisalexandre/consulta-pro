@@ -25,3 +25,11 @@ verify_jwt = true
 
 [functions.enviar-mensagem]
 verify_jwt = true
+
+# Envio de teste das mensagens automaticas (owner/admin; valida o JWT na funcao).
+[functions.send-test-message]
+verify_jwt = true
+
+# Keepalive do WhatsApp (pg_cron a cada 10 min, mesmo padrao do worker).
+[functions.whatsapp-keepalive]
+verify_jwt = true
