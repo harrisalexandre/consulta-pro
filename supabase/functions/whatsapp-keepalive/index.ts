@@ -18,7 +18,7 @@ async function estado(instance: string): Promise<{ state: string | null; http: n
   const key = Deno.env.get("EVOLUTION_API_KEY") || "";
   if (!base || !key) throw new Error("Evolution API não configurada");
   const r = await fetch(`${base}/instance/connectionState/${encodeURIComponent(instance)}`, {
-    headers: { apikey: key }, signal: AbortSignal.timeout(20000),
+    headers: { apikey: key }, signal: AbortSignal.timeout(45000),
   });
   const raw = await r.text();
   if (!r.ok) return { state: null, http: r.status };
@@ -60,13 +60,13 @@ Deno.serve(async (req) => {
       await db.from("whatsapp_integrations").update(patch).eq("id", w.id);
       resultado.push({ company_id: w.company_id, from: w.status, to: status });
     } catch (err) {
-      // Evolution fora do ar / sem resposta
+      // Evolution sem resposta (ex.: servico acordando). Nao muda o status:
+      // um timeout nao prova que o WhatsApp caiu. Fica so o registro.
       console.error("keepalive", w.company_id, err instanceof Error ? err.message : String(err));
       await db.from("whatsapp_integrations").update({
-        status: "error", last_sync_at: agora,
         last_error: "Não foi possível verificar a conexão do WhatsApp",
       }).eq("id", w.id);
-      resultado.push({ company_id: w.company_id, from: w.status, to: "error" });
+      resultado.push({ company_id: w.company_id, from: w.status, to: w.status, checked: false });
     }
   }
 
